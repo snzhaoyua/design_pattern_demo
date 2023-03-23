@@ -1,0 +1,261 @@
+:hardbreaks-option:
+=== State 状态模式
+[quote]
+状态模式是一种行为型设计模式，让你能在一个对象的内部状态变化时改变其行为，使其看上去就像改变了自身所属的类一样1。状态模式允许一个对象在其内部状态发生改变时改变它的行为，对象看起来好像修改了它的类。
+
+.状态模式适用于以下场景
+* 当一个对象的行为取决于它的状态，并且它必须在运行时根据状态改变它的行为时。
+* 当代码中包含大量与对象状态有关的条件语句时。
+
+.状态模式的优点
+* 封装了转换规则，将各种具体的状态类抽象出来。
+* 增强了程序的可扩展性，因为我们很容易添加一个新的状态。
+* 增强了程序的封装性，每个状态的操作都被封装到了一个状态类中。
+
+.状态模式的缺点
+* 状态模式的使用必然会增加系统类和对象的个数。
+* 状态模式的结构与实现都较为复杂，如果使用不当将导致程序结构和代码的混乱。
+* 状态模式对"开闭原则"的支持并不太好，对于可以切换状态的状态模式，增加新的状态类需要修改那些负责状态转换的源代码，否则无法切换到新增状态，而且修改某个状态类的行为也需修改对应类的源代码。
+
+状态模式和策略模式比较类似，都是通过定义一组可互相代替的算法或者行为来实现某个功能。 但是他们之间有一些区别：
+
+* 策略模式中，这一组算法或者行为完成的是同一个任务，只是使用的方式不同；而在状态模式中，不同的状态完成的任务完全不一样。
+* 策略模式中，客户端可以自由选择使用哪种算法或者行为；而在状态模式中，客户端无需关心具体使用哪种状态，由上下文环境或者具体状态类来控制切换逻辑。
+
+[.text-right]
+🧐ME: JDK中有这个模式的例子吗？
+
+🙂BING:
+我没有找到明显使用这个模式的例子，但是我觉得Thread类可能可以看作是一种简单的实现。Thread类有几种不同的内部状态（NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED），每种状态下执行start(), run(), join(), interrupt()等方法可能会有不同的结果。例如，在NEW状态下调用start()方法会启动线程并进入RUNNABLE或者BLOCKED等其他可运行态；而在TERMINATED（终止）态下调用start()方法会抛出IllegalThreadStateException异常。这些逻辑可以看作是由Thread类内部维护了一个State接口和多个ConcreteState实现类来完成。
+
+FSM（Finite State Machine, 有限状态机）可以看作是一种使用了状态模式的实现，它是一种数学模型，用来表示一个系统在有限个状态之间的转换。因为它也是通过定义一组状态和状态之间的转换规则来实现某个功能。但是FSM不一定要使用面向对象的方式来实现，也可以使用其他方式，例如表格或者图形。而状态模式是一种面向对象的设计模式，它通过定义一个State接口和多个ConcreteState实现类来封装不同的状态和行为。
+
+.类图
+[source,text]
+----
++-----------------+        +-----------------+
+|     Context     |<>------|     State       |
++-----------------+        +-----------------+
+| -state: State   |        | +doAction()     |
+| +setState()     |        +-----------------+
+| +getState()     |                 /_\
+| +doAction()     |                  |
++-----------------+                  |
+                                     |
+                +--------------------+--------------------+
+                |                                         |
+                |                                         |
+                v                                         v
+        +-----------------+                     +-----------------+
+        | ConcreteStateA  |                     | ConcreteStateB  |
+        +-----------------+                     +-----------------+
+        | +doAction()     |                     | +doAction()     |
+        +-----------------+                     +-----------------+
+----
+
+Context类是一个持有State接口的引用的类，它负责在运行时根据状态改变自己的行为。它有一个state属性，表示当前的状态对象，以及setState(), getState()和doAction()方法。setState()方法用于设置当前的状态对象，getState()方法用于获取当前的状态对象，doAction()方法用于委托当前的状态对象执行相应的行为。
+State接口是一个定义了统一操作接口的抽象类，它有一个doAction()方法，表示在某个状态下要执行的行为。不同的具体状态类可以实现这个接口，并覆盖doAction()方法，以实现不同的行为逻辑。
+ConcreteStateA和ConcreteStateB类是State接口的两个实现类，分别表示两种具体的状态。它们都实现了doAction()方法，并根据自己的状态逻辑来执行相应的操作。
+Context类和State接口之间有一个聚合关系（<>------），表示Context类持有一个State接口类型的属性，并且这个属性可以指向不同的具体状态对象。Context类可以通过setState()方法来改变这个属性的指向，并且通过getState()方法来获取这个属性的值。
+State接口和ConcreteStateA和ConcreteStateB类之间有一个泛化关系（/_\），表示ConcreteStateA和ConcreteStateB类都是State接口类型的子类，并且继承了它的doAction()方法。它们可以覆盖这个方法来实现自己特有的行为逻辑。
+
+.示例代码
+[source,java]
+----
+// 定义State接口
+public interface State {
+    // 定义doAction()方法
+    void doAction(Context context);
+}
+
+// 定义ConcreteStateA类，实现State接口
+public class ConcreteStateA implements State {
+    // 覆盖doAction()方法
+    @Override
+    public void doAction(Context context) {
+        // 在状态A下要执行的操作
+        System.out.println("This is state A.");
+        // 设置context的状态为当前状态对象
+        context.setState(this);
+    }
+}
+
+// 定义ConcreteStateB类，实现State接口
+public class ConcreteStateB implements State {
+    // 覆盖doAction()方法
+    @Override
+    public void doAction(Context context) {
+        // 在状态B下要执行的操作
+        System.out.println("This is state B.");
+        // 设置context的状态为当前状态对象
+        context.setState(this);
+    }
+}
+
+// 定义Context类，持有State接口的引用
+public class Context {
+    // 定义一个state属性，表示当前的状态对象
+    private State state;
+
+    // 定义一个setState()方法，用于设置当前的状态对象
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    // 定义一个getState()方法，用于获取当前的状态对象
+    public State getState() {
+        return state;
+    }
+
+    // 定义一个doAction()方法，用于委托当前的状态对象执行相应的行为
+    public void doAction() {
+        state.doAction(this);
+    }
+}
+
+// 测试类
+public class Test {
+    public static void main(String[] args) {
+        // 创建一个Context对象
+        Context context = new Context();
+
+        // 创建两个具体的状态对象
+        State stateA = new ConcreteStateA();
+        State stateB = new ConcreteStateB();
+
+        // 设置context的状态为stateA，并执行doAction()方法
+        context.setState(stateA);
+        context.doAction(); // 输出：This is state A.
+
+        // 设置context的状态为stateB，并执行doAction()方法
+        context.setState(stateB);
+        context.doAction(); // 输出：This is state B.
+
+    }
+}
+----
+[.text-right]
+🧐ME: 为什么要在 ConcreteStateA 中 doAction() 的时候执行 context.setState(this)，难道不应该变为其它状态吗？
+
+🙂BING:
+这个代码只是一个简单的示例，为了演示状态模式的基本结构和逻辑。在实际的应用中，具体的状态类可以根据自己的业务逻辑来切换到其他的状态，而不一定要设置为自己。例如，如果有一个状态C，表示在状态A和状态B之间切换的条件，那么 ConcreteStateA 类可以在 doAction() 方法中判断是否满足状态C的条件，如果满足就设置 context 的状态为状态C，否则保持为状态A。这样就可以实现更复杂的状态转换逻辑。
+
+=== Strategy 策略模式
+[quote]
+.优点
+
+.缺点
+
+.适用场景
+
+
+.jdk中的库，以及一些例子
+
+
+.类图
+[source,text]
+----
+
+----
+
+.示例代码
+[source,java]
+----
+
+----
+=== Chain of Responsibility 责任链模式
+[quote]
+
+.优点
+
+.缺点
+
+.适用场景
+
+
+.jdk中的库，以及一些例子
+
+
+.类图
+[source,text]
+----
+
+----
+
+.示例代码
+[source,java]
+----
+
+----
+=== Mediator 中介者模式
+[quote]
+
+.优点
+
+.缺点
+
+.适用场景
+
+
+.jdk中的库，以及一些例子
+
+
+.类图
+[source,text]
+----
+
+----
+
+.示例代码
+[source,java]
+----
+
+----
+=== Interpreter 解释器模式
+[quote]
+
+.优点
+
+.缺点
+
+.适用场景
+
+
+.jdk中的库，以及一些例子
+
+
+.类图
+[source,text]
+----
+
+----
+
+.示例代码
+[source,java]
+----
+
+----
+=== Visitor 访问者模式
+[quote]
+
+.优点
+
+.缺点
+
+.适用场景
+
+
+.jdk中的库，以及一些例子
+
+
+.类图
+[source,text]
+----
+
+----
+
+.示例代码
+[source,java]
+----
+
+----
