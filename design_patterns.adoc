@@ -53,3 +53,9 @@ include::创建型.adoc[]
 == 结构型模式
 include::结构型1.adoc[]
 include::结构型2.adoc[]
+
+== 行为型模式
+include::行为型1.adoc[]
+include::行为型2.adoc[]
+include::行为型3.adoc[]
+include::行为型4.adoc[]
