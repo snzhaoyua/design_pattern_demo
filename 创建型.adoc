@@ -1,658 +1,395 @@
-=== Singleton 单例模式
-[.text-right]
-🧐ME: 什么是单例模式？都有哪些实现方式，请给出java代码以说明。
+=== Adaptor 适配器模式
+[quote]
+适配器模式是一种结构型设计模式，它能使不兼容的对象能够相互合作。适配器可担任两个对象间的封装器，它会接收对于一个对象的调用，并将其转换为另一个对象可识别的格式和接口1。
 
-🙂BING:
-
-.单例模式有以下几种实现方式
-* 懒汉式：在第一次调用时才创建对象，需要考虑线程安全问题。
-* 饿汉式：在类加载时就创建对象，不需要考虑线程安全问题，但可能造成资源浪费。
-* 双重检查锁：在懒汉式的基础上加入双重检查锁机制，保证线程安全和性能。
-* 静态内部类：利用静态内部类的特性，在第一次使用时才加载内部类，实现延迟加载和线程安全。
-* 枚举：利用枚举类型的特性，在枚举中定义一个实例，实现简洁和序列化支持。
-
-.每种单例模式的示例代码
+下面是一个简单的Java代码示例，演示了类适配器模式：
 [source,java]
 ----
-// 懒汉式
-public class Singleton {
-    private static Singleton instance;
-    private Singleton() {}
-    public static synchronized Singleton getInstance() {
-        if (instance == null) {
-            instance = new Singleton();
-        }
-        return instance;
+// 源类
+public class Adaptee {
+    public void specificRequest() {
+        System.out.println("特殊请求");
     }
 }
 
-// 饿汉式
-public class Singleton {
-    private static final Singleton instance = new Singleton();
-    private Singleton() {}
-    public static Singleton getInstance() {
-        return instance;
-    }
+// 目标接口
+public interface Target {
+    public void request();
 }
 
-// 双重检查锁
-public class Singleton {
-    private volatile static Singleton instance;
-    private Singleton() {}
-    public static Singleton getInstance() {
-        if (instance == null) {
-            synchronized (Singleton.class) {
-                if (instance == null) {
-                    instance = new Singleton();
-                }
-            }
-        }
-        return instance;
-    }
-}
-
-// 静态内部类
-public class Singleton {
-    private static class Holder {
-        private static final Singleton INSTANCE = new Singleton();
-    }
-    private Singleton() {}
-    public static final Singleton getInstance() {
-        return Holder.INSTANCE;
-    }
-}
-
-// 枚举
-public enum Singleton {
-    INSTANCE;
-}
-----
-
-.每种单例模式的优缺点：
-|===
-| 单例模式 | 优点 | 缺点
-
-| 懒汉式 | 实现了延迟加载，节省了内存资源 | 需要同步锁，影响了性能
-
-| 饿汉式 | 简单易实现，不需要同步锁，避免了线程安全问题 | 没有实现延迟加载，可能造成资源浪费
-
-| 双重检查锁 | 实现了延迟加载和线程安全，性能较高 | 代码复杂度较高，需要使用volatile关键字防止指令重排
-
-| 静态内部类 | 实现了延迟加载和线程安全，代码简洁 | 不能防止反射和序列化破坏单例
-
-| 枚举 | 实现最简单，自动支持序列化机制，防止反射和序列化破坏单例 | 不能继承其他类
-|===
-
-
-=== Factory Method 工厂方法模式
-
-[.text-right]
-🧐ME: 什么是工厂方法模式？请给出java代码以说明。
-
-🙂BING:
-
-* 工厂方法模式是一种创建型设计模式，它定义了一个创建产品对象的工厂接口，将实际创建工作推迟到子类当中。这样做的目的是将产品类的实例化操作延迟到工厂子类中完成，即通过工厂子类来确定究竟应该实例化哪一个具体产品类。
-* 工厂方法模式解决了简单工厂模式中的缺点，即当需要增加新的产品时，不需要修改原有的工厂类代码，而只需增加一个具体的产品类和对应的具体工厂类。这样就遵循了开闭原则，即对扩展开放，对修改关闭。
-
-下面是一个用java代码说明的例子：
-假设有一个抽象产品接口Shape和两个具体产品类Circle和Rectangle，以及一个抽象工厂接口ShapeFactory和两个具体工厂类CircleFactory和RectangleFactory。
-代码如下：
-[source,java]
-----
-// 抽象产品接口
-public interface Shape {
-    void draw();
-}
-
-// 具体产品类
-public class Circle implements Shape {
+// 适配器类
+public class Adapter extends Adaptee implements Target {
     @Override
-    public void draw() {
-        System.out.println("Draw a circle.");
+    public void request() {
+        specificRequest();
     }
 }
 
-public class Rectangle implements Shape {
-    @Override
-    public void draw() {
-        System.out.println("Draw a rectangle.");
-    }
-}
-
-// 抽象工厂接口
-public interface ShapeFactory {
-    Shape createShape();
-}
-
-// 具体工厂类
-public class CircleFactory implements ShapeFactory {
-    @Override
-    public Shape createShape() {
-        return new Circle();
-    }
-}
-
-public class RectangleFactory implements ShapeFactory {
-    @Override
-    public Shape createShape() {
-        return new Rectangle();
-    }
-}
-----
-
-使用时，只需根据需要创建相应的具体工厂对象，并调用其createShape()方法即可得到相应的具体产品对象。例如：
-[source,java]
-----
-// 创建圆形工厂对象
-ShapeFactory circleFactory = new CircleFactory();
-// 通过圆形工厂对象创建圆形对象
-Shape circle = circleFactory.createShape();
-// 调用圆形对象的draw()方法
-circle.draw();
-
-// 创建矩形工厂对象
-ShapeFactory rectangleFactory = new RectangleFactory();
-// 通过矩形工厂对象创建矩形对象
-Shape rectangle = rectangleFactory.createShape();
-// 调用矩形对象的draw()方法
-rectangle.draw();
-----
-
-输出结果为：
-Draw a circle.
-Draw a rectangle.
-
-==== 简单工厂模式？
-[.text-right]
-🧐ME: 简单工厂模式是23种设计模式种的一种吗？
-
-🙂BING: 不是的。简单工厂模式并不是23种设计模式中的一种，它只是一种编程习惯，也叫做静态工厂方法。23种设计模式中的工厂模式包括工厂方法模式和抽象工厂模式。它不符合开闭原则1，即对扩展开放，对修改关闭。简单工厂模式在增加新的产品时需要修改工厂类的代码，违反了开闭原则。而真正的设计模式应该是能够在不修改原有代码的基础上增加新的功能或者改变行为。
-
-[.text-right]
-🧐ME: 简单工厂模式与工厂方法模式有什么区别？
-
-🙂BING: 工厂方法模式和简单工厂模式的区别主要有以下几点：
-* 简单工厂模式只有一个工厂类，根据传入的参数来创建不同的对象，而工厂方法模式有一个抽象的工厂接口或类，每个子类对应一个具体的对象。
-* 简单工厂模式违反了开闭原则，当需要增加新的对象时，需要修改工厂类的代码，而工厂方法模式符合开闭原则，只需要增加新的子类和对应的对象即可。
-* 简单工厂模式将创建对象的逻辑封装在工厂类中，客户端只需要传入参数即可，而工厂方法模式将创建对象的逻辑转移到了客户端中，客户端需要选择合适的子类来创建对象。
-
-[.text-right]
-🧐ME: 请给我一个简单工厂模式和工厂方法模式的代码对比。
-
-🙂BING: 假设我们有一个抽象的产品类Product，和两个具体的产品类ProductA和ProductB。
-
-[source,java]
-----
-// 抽象产品类
-public abstract class Product {
-    public abstract void show();
-}
-
-// 具体产品类A
-public class ProductA extends Product {
-    @Override
-    public void show() {
-        System.out.println("This is product A.");
-    }
-}
-
-// 具体产品类B
-public class ProductB extends Product {
-    @Override
-    public void show() {
-        System.out.println("This is product B.");
-    }
-}
-----
-
-.简单工厂模式的代码如下
-[source,java]
-----
-// 简单工厂类
-public class SimpleFactory {
-    // 根据参数创建不同的产品对象并返回
-    public static Product createProduct(String type) {
-        if (type.equals("A")) {
-            return new ProductA();
-        } else if (type.equals("B")) {
-            return new ProductB();
-        } else {
-            return null;
-        }
-    }
-}
-
-// 客户端类
-public class Client {
+// 测试类
+public class AdapterTest {
     public static void main(String[] args) {
-        // 通过简单工厂创建产品对象并使用
-        Product product = SimpleFactory.createProduct("A");
-        product.show();
+        Target target = new Adapter();
+        target.request();
     }
 }
 ----
 
-.工厂方法模式的代码如下
+在这个例子中，Adaptee 类有一个 specificRequest() 方法，但是客户端希望调用 request() 方法。为了解决这个问题，我们创建了一个 Adapter 类，它继承自 Adaptee 类并实现了 Target 接口。在 Adapter 类中，我们重写了 request() 方法，并在其中调用了父类的 specificRequest() 方法。这样一来，客户端就可以通过调用 Adapter 类的 request() 方法来间接调用 Adaptee 类的 specificRequest() 方法了。
+
+==== 对象适配器模式
+对象适配器模式与类适配器模式类似，但它不是通过继承来实现适配，而是通过组合的方式。在对象适配器模式中，适配器类持有一个被适配类的实例，并实现目标接口。在目标接口的方法中，调用被适配类实例的相应方法来实现。
+
+下面是一个简单的Java代码示例，演示了对象适配器模式：
 [source,java]
 ----
-// 抽象工厂接口或类
-public interface Factory {
-    // 每个子类对应一个具体的产品对象并返回
-    public Product createProduct();
-}
-
-// 具体工厂类A，创建并返回具体产品对象A
-public class FactoryA implements Factory {
-    @Override
-    public Product createProduct() {
-        return new ProductA();
+// 源类
+public class Adaptee {
+    public void specificRequest() {
+        System.out.println("特殊请求");
     }
 }
 
-// 具体工厂类B，创建并返回具体产品对象B
-public class FactoryB implements Factory {
+// 目标接口
+public interface Target {
+    public void request();
+}
+
+// 适配器类
+public class Adapter implements Target {
+    private Adaptee adaptee;
+
+    public Adapter(Adaptee adaptee) {
+        this.adaptee = adaptee;
+    }
+
     @Override
-    public Product createProduct() {
-        return new ProductB();
+    public void request() {
+        adaptee.specificRequest();
     }
 }
 
-// 客户端类，与简单工厂模式不同，需要选择合适的子类来创建对象。
-public class Client2 {
-
+// 测试类
+public class AdapterTest {
     public static void main(String[] args) {
-
-        Factory factory = new FactoryA(); // 选择合适的子类来创建对象
-
-        Product product = factory.createProduct(); // 通过抽象接口或父类调用方法
-
-        product.show(); // 使用对象
-
+        Target target = new Adapter(new Adaptee());
+        target.request();
     }
 }
 ----
-
-从上面的代码对比可以看出：
-* 简单工厂模式只有一个静态方法createProduct来根据参数创建不同的对象，而工厂方法模式有一个抽象接口或父类Factory和多个子类FactoryA和FactoryB来分别创建对应的对象。
-* 简单工厂模式在增加新的对象时需要修改createProduct方法中的判断逻辑，而工厂方法模式在增加新的对象时只需要增加新的子类即可。
-* 简单工厂模式在客户端只需要传入参数即可获取对象，而工厂方法模式在客户端需要先选择合适的子类然后通过抽象接口或父类调用方法获取对象。
-
-===	Abstract Factory 抽象工厂模式
+在这个例子中，Adaptee 类有一个 specificRequest() 方法，但是客户端希望调用 request() 方法。为了解决这个问题，我们创建了一个 Adapter 类，它持有一个 Adaptee 类的实例并实现了 Target 接口。在 Adapter 类中，我们重写了 request() 方法，并在其中调用了被持有的 Adaptee 实例的 specificRequest() 方法。这样一来，客户端就可以通过调用 Adapter 类的 request() 方法来间接调用 Adaptee 类的 specificRequest() 方法了。
 
 [.text-right]
-🧐ME: 什么是抽象工厂模式，请用java代码说明。
-
-🙂BING: 抽象工厂模式是一种创建型设计模式，它能创建一系列相关的对象，而无需指定其具体类。抽象工厂定义了用于创建不同产品的接口，但将实际的创建工作留给了具体工厂类。例如，笔记本、手机、路由器等都是不同的产品，华为、苹果、联想等都是不同的工厂。
-用java代码说明的话，可以参考以下示例：
-[source,java]
-----
-// 抽象产品：按钮
-interface Button {
-    void paint();
-}
-
-// 具体产品：MacOS按钮
-class MacOSButton implements Button {
-    @Override
-    public void paint() {
-        System.out.println("你已经创建了MacOSButton.");
-    }
-}
-
-// 具体产品：Windows按钮
-class WindowsButton implements Button {
-    @Override
-    public void paint() {
-        System.out.println("你已经创建了WindowsButton.");
-    }
-}
-
-// 抽象产品：复选框
-interface Checkbox {
-    void paint();
-}
-
-// 具体产品：MacOS复选框
-class MacOSCheckbox implements Checkbox {
-    @Override
-    public void paint() {
-        System.out.println("你已经创建了MacOSCheckbox.");
-    }
-}
-
-// 具体产品：Windows复选框
-class WindowsCheckbox implements Checkbox {
-    @Override
-    public void paint() {
-        System.out.println("你已经创建了WindowsCheckbox.");
-    }
-}
-
-// 抽象工厂：GUI工厂
-interface GUIFactory {
-    Button createButton();
-    Checkbox createCheckbox();
-}
-
-// 具体工厂：MacOS GUI工厂
-class MacOSFactory implements GUIFactory {
-
-    @Override
-    public Button createButton() {
-        return new MacOSButton();
-    }
-
-    @Override
-    public Checkbox createCheckbox() {
-        return new MacOSCheckbox();
-    }
-}
-
-// 具体工厂：Windows GUI工厂
-class WindowsFactory implements GUIFactory {
-
-   @Override
-   public Button createButton() {
-       return new WindowsButton();
-   }
-
-   @Override
-   public Checkbox createCheckbox() {
-       return new WindowsCheckbox();
-   }
-}
-----
-
-[.text-right]
-🧐ME: 这个模式有什么优缺点？
+🧐ME: 什么情况下使用对象适配器，什么情况下使用类适配器？
 
 🙂BING:
-抽象工厂模式的优点有：
-抽象工厂模式隔离了具体类的生产，使得客户并不需要知道什么被创建。
-当一个产品族中的多个对象被设计成一起工作时，它能保证客户端始终只使用同一个产品族中的对象。
-增加新的具体工厂和产品族很方便，无须修改已有系统，符合“开闭原则”。
+对象适配器和类适配器都可以用来解决接口不兼容的问题，但它们各自有其优缺点。
 
-抽象工厂模式的缺点有：
-抽象工厂模式的扩展性不好。如果要增加一个新的产品，就要修改抽象工厂和所有的具体工厂，违反了“开闭原则”。
-抽象工厂模式增加了系统的抽象性和理解难度。如果产品族过多或者层次过深，会导致类数目急剧增加，增加了系统复杂度。
+类适配器使用继承来实现适配，因此它只能适配一个具体的类。这意味着如果被适配类的子类也需要被适配，那么我们需要为每个子类都创建一个对应的适配器。此外，由于Java只支持单继承，所以如果目标接口或被适配类已经继承了其他类，那么我们就不能再使用类适配器了。
 
-[.text-right]
-🧐ME: 抽象工厂模式和工厂方法模式有什么区别？
+相比之下，对象适配器使用组合来实现适配。这意味着它可以同时适配一个类及其所有子类。此外，由于对象适配器不依赖于继承关系，所以它没有单继承的限制。
 
-🙂BING:
-抽象工厂模式和工厂方法模式的区别主要有以下几点：
-工厂方法模式只有一个抽象产品类，具体工厂类只能创建一个具体产品类的实例；抽象工厂模式有多个抽象产品类，具体工厂类能创建多个具体产品类的实例。
-工厂方法模式针对的是一个产品等级结构，即同一种类型的产品；抽象工厂模式针对的是多个产品等级结构，即不同类型的产品。
-工厂方法模式通过让子类决定该创建的对象是什么，来达到将对象创建的过程封装的目的；抽象工厂模式提供一个接口，用来创建相关或依赖对象的家族，而不需要明确指定具体类。
+总之，在选择使用哪种类型的适配器时，应该根据具体情况进行判断。如果被适配类及其子类都需要被适配，或者目标接口或被适配类已经继承了其他类，则应该使用对象适配器；否则可以考虑使用更简单的类适配器。
 
-[.text-right]
-🧐ME: 不够清楚，能再详细解释一下吗
+=== Bridge 桥接模式
+[quote]
+桥接模式是一种结构型设计模式，它将抽象部分与它的实现部分分离，使它们都可以独立地变化。这种模式通过提供抽象化和实现化之间的桥接结构，来实现二者的解耦。
 
-🙂BING: 好的，我尽量再详细解释一下。
-抽象工厂模式和工厂方法模式都是创建型模式，用来封装对象的创建过程，但是它们有不同的应用场景和实现方式。为了方便理解，我给你举一个例子：
-假设有一个富商，在深圳开了三个手机厂，分别代工苹果手机，三星手机，华为手机。每个手机厂都有自己的生产线，可以生产不同型号的手机。如果我们要用代码来描述这个场景，我们可以这样设计：
+.桥接模式适用于以下场景
+* 如果一个系统需要在构件的抽象化角色和具体化角色之间增加更多的灵活性，避免在两个层次之间建立静态的继承联系，通过桥接模式可以使它们在抽象层建立一个关联关系。
+* 对于那些不希望使用继承或因为多层次继承导致系统类的个数急剧增加的系统，桥接模式尤为适用。
+* 一个类存在两个独立变化的维度，且这两个维度都需要进行扩展。
 
-工厂方法模式：我们定义一个抽象类PhoneFactory，它有一个抽象方法createPhone()，让子类实现这个方法来创建具体的手机对象。然后我们定义三个具体的工厂类AppleFactory、SamsungFactory、HuaweiFactory，它们分别继承自PhoneFactory，并重写createPhone()方法来创建苹果、三星、华为的具体手机对象。这样我们就可以根据不同的工厂对象来创建不同品牌的手机对象。
+.桥接模式的优点
+1. 抽象和实现的分离
+2. 优秀的扩展能力
+3. 实现细节对客户透明
 
-抽象工厂模式：我们定义一个接口AbstractFactory，它有多个抽象方法createApple()、createSamsung()、createHuawei()等，用来创建不同品牌的手机对象。然后我们定义三个具体的工厂类Shenzhen1Factory、Shenzhen2Factory、Shenzhen3Factory，它们分别实现AbstractFactory接口，并实现各自的抽象方法来创建具体的手机对象。这样我们就可以根据不同的工厂对象来创建多种品牌和型号的手机对象。
-从上面的例子可以看出：
-工厂方法模式只能创建一种类型（品牌）的产品（手机），而抽象工厂模式可以创建多种类型（品牌）和等级（型号）的产品（手机）。
-工厂方法模式是通过继承抽象类并重写抽象方法来实现具体产品（手机）的创建；而抽象工厂模式是通过实现接口并实现多个抽象方法来实现多种产品（手机）的创建。
-工厂方法模式适合于产品等级结构单一且稳定不变化时使用；而抽象工厂模式适合于产品等级结构复杂且经常变化时使用。
-希望这样能让你更清楚地理解两者之间的区别。
+.桥接模式的缺点
+桥接模式的引入会增加系统的理解与设计难度，由于聚合关联关系建立在抽象层，要求开发者针对抽象进行设计与编程。
 
-[.text-right]
-🧐ME: 你能用字符拼接出一个图片，用于展示抽象工厂的类图吗？
+.与桥接模式类似的模式？
+与桥接模式比较类似的设计模式有适配器模式。两者都是为了让两个不相关或不兼容的类协同工作。但是适配器模式通常用于已有系统中，而桥接模式则用于在设计时就考虑到两个独立变化的维度，并让它们能够独立地变化。
 
-🙂BING:
-[source,txt]
-----
-+------------------+                  +-----------------+
-|  AbstractFactory |<-----------------|    Client       |
-+------------------+                  +-----------------+
-| +createProductA()|                  | -factory        |
-| +createProductB()|                  | +Client(factory)|
-+------------------+                  | +doSomething()  |
-         ^    ^                       +-----------------+
-         |    |
-         |    +---------------+                      +--------------+   +--------------+
-         |                    |                      |  ProductA    |   |  ProductB    |
-+-----------------+  +-----------------+             +--------------+   +--------------+
-|ConcreteFactory1 |  |ConcreteFactory2 |             |-name             |-name
-+-----------------+  +-----------------+             |-price            |-price
-|+createProductA()|  |+createProductA()|
-|+createProductB()|  |+createProductB()|
-----
-
-===	Builder 建造者模式
-
-[.text-right]
-🧐ME: 什么是建造者模式？我们为什么要使用建造者模式？请用java代码说明。
-
-🙂BING: 建造者模式是一种创建型模式，它将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。它允许用户只通过复杂对象的类型和内容就可以构建它们，而不需要用户知道内部的具体细节。
-用java代码说明的话，可以参考以下示例：
-[source,java]
-----
-//产品类
-class Meal {
-    private String burger;
-    private String cola;
-    private String fries;
-
-    public void setBurger(String burger) {
-        this.burger = burger;
-    }
-
-    public void setCola(String cola) {
-        this.cola = cola;
-    }
-
-    public void setFries(String fries) {
-        this.fries = fries;
-    }
-
-    public void show() {
-        //显示套餐内容
-        System.out.println("burger: " + burger);
-        System.out.println("cola: " + cola);
-        System.out.println("fries: " + fries);
-    }
-}
-
-//抽象建造者
-abstract class MealBuilder {
-    //创建产品对象
-    protected Meal meal = new Meal();
-
-    public abstract void buildBurger();
-
-    public abstract void buildCola();
-
-    public abstract void buildFries();
-
-    //返回产品对象
-    public Meal getResult() {
-        return meal;
-    }
-}
-
-//具体建造者1
-class AMealBuilder extends MealBuilder {
-
-    @Override
-    public void buildBurger() {
-        meal.setBurger("牛肉汉堡");
-    }
-
-    @Override
-    public void buildCola() {
-        meal.setCola("可口可乐");
-    }
-
-    @Override
-    public void buildFries() {
-        meal.setFries("大份薯条");
-    }
-}
-
-//具体建造者2
-class BMealBuilder extends MealBuilder {
-
-    @Override
-    public void buildBurger() {
-        meal.setBurger("鸡肉汉堡");
-    }
-
-    @Override
-    public void buildCola() {
-        meal.setCola("百事可乐");
-    }
-
-    @Override
-    public void buildFries() {
-        meal.setFries("中份薯条");
-    }
-}
-
-//指挥者类（服务员）
-//指挥者类的作用是封装建造者的使用，让客户端不需要直接操作建造者对象，而只需要指定想要的套餐类型，
-//由指挥者类来负责调用建造者的方法来组装产品。这样可以降低客户端和建造者之间的耦合度，也可以方便地更换不同的建造者或修改组装顺序。
-class Waiter {
-
-    private MealBuilder builder;
-
-    //设置当前使用的建造者对象（可用于切换不同的建造者）
-    public Waiter(MealBuilder builder) {
-        this.builder = builder;
-    }
-
-    //构建产品（可用于指定不同的组装顺序或步骤）
-    public Meal serveMeal() {
-        builder.buildBurger();
-        builder.buildCola();
-        builder.buildFries();
-        return builder.getResult();
-    }
-
-}
-
-//客户端测试代码
-
-public class Client {
-
-    public static void main(String[] args) {
-
-        MealBuilder aMealBuilder = new AMealBuilder();
-        Waiter waiter1 = new Waiter(aMealBuilder);
-        Meal aMeal = waiter1.serveMeal();
-        aMeal.show();
-
-        MealBuilder bMealBuilder = new BMealBuilder();
-        Waiter waiter2 = new Waiter(bMealBuilder);
-        Meal bMeal = waiter2.serveMeal();
-        bMeal.show();
-
-    }
-}
-----
-
-输出结果为：
-----
-burger: 牛肉汉堡
-cola: 可口可乐
-fries: 大份薯条
-burger: 鸡肉汉堡
-cola: 百事可乐
-fries: 中份薯条
-----
-
-[.text-right]
-🧐ME: 建造者模式和工厂模式有什么区别？什么时候应该使用建造者模式而不是工厂模式？
-
-🙂BING:
-建造者模式和工厂模式的区别是：工厂模式注重的是整体对象的创建方式，建造者模式注重的是部件构建的过程，意在通过一步一步地精确构造创建出一个复杂的对象。工厂模式是一个对象创建的粗线条应用，建造者模式则是通过细线条勾勒出一个复杂对象，关注的是产品组成部分的创建过程。
-一般来说，当你需要创建的对象包含多个组件，而且这些组件的创建过程需要分步进行，并且可以有不同的组合方式时，你可以使用建造者模式。建造者模式可以让你把对象的构建和表示分离，使得同样的构建过程可以创建出不同的表示。而工厂模式更适合于产品对象较少，或者产品的创建方式比较简单和固定的情况。
-
-[.text-right]
-🧐ME: 你能给我一个在jdk的源码中使用建造者模式的例子吗？
-
-🙂BING:
-一个在jdk源码中使用建造者模式的例子是StringBuilder类。它是一个抽象建造者的子类，实现了Appendable接口的多个append方法，用于构建字符串对象。它还提供了一个toString方法，用于返回最终创建的字符串对象。
-
-[.text-right]
-🧐ME: 你能用字符拼接出一个图片，用于展示建造者模式的类图吗？
-🙂BING:
-
+.桥接模式的类图
 [source,text]
 ----
-+----------------+     +----------------+
-|   Director     |     | <<interface>>  |
-|+Builder builder|o----|   Builder      |
-| +construct()   |     +----------------+
-+----------------+     | +buildPart()   |
-                       +----------------+
-                                ^
-                                -
-                                |
-+----------------+     +-----------------+
-|    Product     |<----|  ConcreteBuilder|
-|                |     | +buildPart()    |
-+----------------+     | +getResult()    |
-                       +-----------------+
+    +----------------+         +----------------+
+    |  Abstraction   |         |  Implementor   |
+    +----------------+         +----------------+
+    | -implementor   |         |                |
+    +-------+--------+         +-------+--------+
+            |                          |
+            |                          |
+            v                          v
+  +---------+----------+     +---------+-----------+
+  | RefinedAbstraction |     | ConcreteImplementorA|
+  +--------------------+     +---------------------+
+                            /| ConcreteImplementorB|
+                           / +---------------------+
+                          /
+                         v
+                +--------+--------+
+                | BridgeClient    |
+                +-----------------+
 ----
 
-=== Prototype 原型模式
+.一个桥接模式的例子
+假设我们正在开发一个跨平台的图形绘制应用程序，它可以在 Windows 和 Linux 系统上运行。我们可以定义一个 Shape 类，它有一个 draw() 方法用于绘制形状。我们还可以定义两个子类 Rectangle 和 Circle 来表示矩形和圆形。
 
-[quote]
-原型模式是一种创建型设计模式，它允许您复制对象，甚至是复杂对象，而无需使代码依赖于它们所属的类。所有原型类都必须具有一个通用接口，以便在不知道对象所属的具体类的情况下也能够复制对象。原型对象可以生成自身的完整副本，因为相同类的对象可以相互访问对方的私有成员变量。
+但是，由于不同的操作系统有不同的绘图 API，所以我们需要在 draw() 方法中根据当前操作系统来调用不同的 API。这样一来，如果我们要增加对另一个操作系统的支持，就需要修改所有形状类的 draw() 方法。而且，如果我们要增加新的形状，也需要在新的形状类中实现对所有操作系统的支持。
 
-下面是一个简单的Java示例代码：
+为了解决这个问题，我们可以使用桥接模式。首先，我们定义一个 DrawAPI 接口，它有一个 drawShape() 方法用于绘制形状。然后，我们定义两个实现了 DrawAPI 接口的类 WindowsDrawAPI 和 LinuxDrawAPI 来分别实现在 Windows 和 Linux 系统上绘制形状。
 
+接下来，在 Shape 类中增加一个成员变量 drawAPI 来保存一个 DrawAPI 对象，并在构造函数中初始化这个变量。然后，在 draw() 方法中调用 drawAPI.drawShape() 来绘制形状。
+
+这样一来，当我们要增加对新操作系统的支持时，只需要新增一个实现了 DrawAPI 接口的类即可；当我们要增加新的形状时，也只需要新增一个继承自 Shape 类的类即可。两个维度都可以独立地变化。
 [source,java]
 ----
-import java.util.Objects;
+// 抽象类 Shape，它有一个成员变量 drawAPI 来保存一个 DrawAPI 对象。
+// Shape 类还有两个子类 Rectangle 和 Circle 来分别表示矩形和圆形。
+abstract class Shape {
+    protected DrawAPI drawAPI;
 
-//这是一个抽象Shape类，它定义了一个克隆方法来创建当前形状对象的副本。这个方法将由子类实现。
-public abstract class Shape {
-    public int x;
-    public int y;
-    public String color;
-
-    public Shape() {
+    protected Shape(DrawAPI drawAPI) {
+        this.drawAPI = drawAPI;
     }
 
-    public Shape(Shape target) {
-        if (target != null) {
-            this.x = target.x;
-            this.y = target.y;
-            this.color = target.color;
-        }
-    }
+    public abstract void draw();
+}
 
-    public abstract Shape clone();
+// 实现类 Rectangle
+class Rectangle extends Shape {
+    public Rectangle(DrawAPI drawAPI) {
+        super(drawAPI);
+    }
 
     @Override
-    public boolean equals(Object object2) {
-        if (!(object2 instanceof Shape)) return false;
-        Shape shape2 = (Shape) object2;
-        return shape2.x == x && shape2.y == y && Objects.equals(shape2.color, color);
+    public void draw() {
+        drawAPI.drawRectangle();
     }
+}
+
+// 实现类 Circle
+class Circle extends Shape {
+    public Circle(DrawAPI drawAPI) {
+        super(drawAPI);
+    }
+
+    @Override
+    public void draw() {
+        drawAPI.drawCircle();
+    }
+}
+
+// 接口 DrawAPI 定义了两个方法 drawCircle() 和 drawRectangle() 来分别绘制圆形和矩形。
+// 我们定义了两个实现了 DrawAPI 接口的类 WindowsDrawAPI 和 LinuxDrawAPI 来分别实现在 Windows 和 Linux 系统上绘制图形。
+interface DrawAPI {
+    void drawCircle();
+    void drawRectangle();
+}
+
+// 实现类 WindowsDrawAPI
+class WindowsDrawAPI implements DrawAPI {
+    @Override
+    public void drawCircle() {
+        System.out.println("Draw circle on Windows");
+    }
+
+    @Override
+    public void drawRectangle() {
+        System.out.println("Draw rectangle on Windows");
+    }
+}
+
+// 实现类 LinuxDrawAPI
+class LinuxDrawAPI implements DrawAPI {
+    @Override
+    public void drawCircle() {
+        System.out.println("Draw circle on Linux");
+    }
+
+    @Override
+    public void drawRectangle() {
+        System.out.println("Draw rectangle on Linux");
+    }
+}
+
+// 测试代码
+public class BridgePatternDemo {
+   public static void main(String[] args) {
+      Shape rectangle = new Rectangle(new WindowsDrawAPI());
+      rectangle.draw();
+
+      Shape circle = new Circle(new LinuxDrawAPI());
+      circle.draw();
+   }
 }
 ----
 
-[.text-right]
-🧐ME: 原型模式的使用场景是什么？优点是什么？jdk中有什么例子吗？
-🙂BING:
-原型模式用于创建重复的对象，同时保证性能。这种模式首先是实现了一个「原型接口」，该接口用于创建当前对象的克隆1。例如一个对象需要在一个高代价的数据库操作之后被创建，我们可以缓存该对象，在下一个请求时返回它的克隆，需要时再更新数据库，以此来减少数据库调用。
+=== Composite 组合模式
+[quote]
+组合模式是一种结构型设计模式，它将对象组合成树形结构以表示“整体-部分”的结构层次。组合模式使客户端对单个对象和组合对象保持一致的方式处理。
 
-.使用场景包括：
-1. 资源优化场景
-2. 类初始化需要消耗非常多资源
-3. 一个对象多个修改者的场景
+组合模式通过将**单个对象和组合对象用相同的接口**进行表示，使得单个对象和组合对象的使用具有一致性。这样，客户端可以以一致的方式处理单个对象和组合对象，而不必关心它们之间的区别。
+[red]#如果没有组合模式，客户端可能需要编写大量的条件语句来判断当前处理的是单个对象还是组合对象，并根据不同情况采取不同的操作。这会导致代码复杂度增加，可维护性降低。#
+jdk中的 HashMap 就是使用了组合模式。
 
-.原型模式的优点包括
-1. 性能优良。Java自带的原型模式基于内存二进制流的复制，在性能上比直接new一个对象更加优良。
-2. 可以使用深克隆方式保存对象的状态，使用原型模式将对象复制一份，并将其状态保存起来，简化了创建对象的过程，以便在需要的时候使用（例如恢复到历史某一状态），可辅助实现撤销操作。
+.组合模式适用于
+1. 忽略差异：希望客户端可以忽略组合对象与单个对象的差异；
+2. 处理树形结构。
 
-.jdk中使用原型模式的类
-在JDK中，java.lang.Object类中的clone()方法就使用了原型模式。这个方法可以快速地浅拷贝一个对象，但是前提条件是被克隆的对象的类需要实现Cloneable接口，否则会抛出异常。
+.组合模式的优点
+1. 定义层次：清楚地定义分层次的复杂对象，表示对象的全部或部分层次；
+2. 忽略层次：让客户端忽略层次之间的差异，方便对整个层次结构进行控制；
+3. 简化客户端代码；
+4. 符合开闭原则。
+
+.组合模式的缺点
+1. 限制类型复杂：限制类型时，比较复杂；
+2. 使设计变得更加抽象；
+
+在设计模式中，有很多模式都和组合模式类似，都是将一部分工作委派给一个子类对象。比如装饰器模式为原对象增加了额外的功能，组合模式仅仅是对原对象进行的组合调用。
+
+.组合模式的类图
+[source,text]
+----
+                  ┌──────────────┐
+                  │  Component   │
+                  ├──────────────┤
+                  │ +operation() │
+                  └──────┬───────┘
+                         │
+           ┌─────────────┴─────────────┐
+           │                           │
+  ┌────────┴────────┐         ┌────────┴────────┐
+  │     Leaf        │         │    Composite    │
+  ├─────────────────┤         ├─────────────────┤
+  │ +operation()    │         │ +add()          │
+  └─────────────────┘         │ +remove()       │
+                              │ +getChild()     │
+                              └─────────────────┘
+
+----
+
+[source,java]
+----
+import java.util.ArrayList;
+import java.util.List;
+// Component 有两个子类，Composite 和 Leaf
+abstract class Component {
+    protected String name;
+
+    public Component(String name) {
+        this.name = name;
+    }
+
+    public abstract void add(Component c);
+
+    public abstract void remove(Component c);
+
+    public abstract void display(int depth);
+}
+
+// Composite 表示容器节点
+class Composite extends Component {
+    private List<Component> children = new ArrayList<>();
+
+    public Composite(String name) {
+        super(name);
+    }
+
+    @Override
+    public void add(Component c) {
+        children.add(c);
+    }
+
+    @Override
+    public void remove(Component c) {
+        children.remove(c);
+    }
+
+    @Override
+    public void display(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("-");
+        }
+        System.out.println(sb.toString() + name);
+        for (Component component : children) {
+            component.display(depth + 2);
+        }
+    }
+}
+
+// Leaf 类表示叶子节点
+class Leaf extends Component {
+
+    public Leaf(String name) {
+        super(name);
+    }
+
+    @Override
+    public void add(Component c) {
+        System.out.println("Cannot add to a leaf");
+    }
+
+    @Override
+    public void remove(Component c) {
+        System.out.println("Cannot remove from a leaf");
+    }
+
+    @Override
+    public void display(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("-");
+        }
+        System.out.println(sb.toString() + name);
+    }
+}
+
+public class CompositePatternDemo {
+
+   public static void main(String[] args) {
+
+      Composite root = new Composite("root");
+      root.add(new Leaf("Leaf A"));
+      root.add(new Leaf("Leaf B"));
+
+      Composite comp = new Composite("Composite X");
+      comp.add(new Leaf("Leaf XA"));
+      comp.add(new Leaf("Leaf XB"));
+
+      root.add(comp);
+
+      Composite comp2 = new Composite("Composite XY");
+      comp2.add(new Leaf("Leaf XYA"));
+      comp2.add(new Leaf("Leaf XYB"));
+
+      comp.add(comp2);
+
+      root.add(new Leaf("Leaf C"));
+
+      Leaf leaf = new Leaf("Leaf D");
+      root.add(leaf);
+      root.remove(leaf);
+
+      root.display(1);
+   }
+}
+
+// 运行的结果为：
+// -root
+// ---Leaf A
+// ---Leaf B
+// ---Composite X
+// -----Leaf XA
+// -----Leaf XB
+// -----Composite XY
+// -------Leaf XYA
+// -------Leaf XYB
+// ---Leaf C
+----
+上面的代码定义了一个抽象的 Component 类，它有两个子类：Composite 和 Leaf。Composite 类表示容器节点，它可以包含子节点。Leaf 类表示叶子节点，它没有子节点。
+
+在 main 方法中，我们创建了一个根节点，并向其中添加了一些容器节点和叶子节点，最后调用 display 方法来显示整个树形结构。
