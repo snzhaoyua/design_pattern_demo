@@ -1,0 +1,399 @@
+=== 适配器模式
+适配器模式是一种结构型设计模式，它能使不兼容的对象能够相互合作。适配器可担任两个对象间的封装器，它会接收对于一个对象的调用，并将其转换为另一个对象可识别的格式和接口1。
+
+下面是一个简单的Java代码示例，演示了类适配器模式：
+[source,java]
+----
+// 源类
+public class Adaptee {
+    public void specificRequest() {
+        System.out.println("特殊请求");
+    }
+}
+
+// 目标接口
+public interface Target {
+    public void request();
+}
+
+// 适配器类
+public class Adapter extends Adaptee implements Target {
+    @Override
+    public void request() {
+        specificRequest();
+    }
+}
+
+// 测试类
+public class AdapterTest {
+    public static void main(String[] args) {
+        Target target = new Adapter();
+        target.request();
+    }
+}
+----
+
+在这个例子中，Adaptee 类有一个 specificRequest() 方法，但是客户端希望调用 request() 方法。为了解决这个问题，我们创建了一个 Adapter 类，它继承自 Adaptee 类并实现了 Target 接口。在 Adapter 类中，我们重写了 request() 方法，并在其中调用了父类的 specificRequest() 方法。这样一来，客户端就可以通过调用 Adapter 类的 request() 方法来间接调用 Adaptee 类的 specificRequest() 方法了。
+
+==== 对象适配器模式
+对象适配器模式与类适配器模式类似，但它不是通过继承来实现适配，而是通过组合的方式。在对象适配器模式中，适配器类持有一个被适配类的实例，并实现目标接口。在目标接口的方法中，调用被适配类实例的相应方法来实现。
+
+下面是一个简单的Java代码示例，演示了对象适配器模式：
+[source,java]
+----
+// 源类
+public class Adaptee {
+    public void specificRequest() {
+        System.out.println("特殊请求");
+    }
+}
+
+// 目标接口
+public interface Target {
+    public void request();
+}
+
+// 适配器类
+public class Adapter implements Target {
+    private Adaptee adaptee;
+
+    public Adapter(Adaptee adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    @Override
+    public void request() {
+        adaptee.specificRequest();
+    }
+}
+
+// 测试类
+public class AdapterTest {
+    public static void main(String[] args) {
+        Target target = new Adapter(new Adaptee());
+        target.request();
+    }
+}
+----
+在这个例子中，Adaptee 类有一个 specificRequest() 方法，但是客户端希望调用 request() 方法。为了解决这个问题，我们创建了一个 Adapter 类，它持有一个 Adaptee 类的实例并实现了 Target 接口。在 Adapter 类中，我们重写了 request() 方法，并在其中调用了被持有的 Adaptee 实例的 specificRequest() 方法。这样一来，客户端就可以通过调用 Adapter 类的 request() 方法来间接调用 Adaptee 类的 specificRequest() 方法了。
+
+[.text-right]
+🧐ME: 什么情况下使用对象适配器，什么情况下使用类适配器？
+
+🙂BING:
+对象适配器和类适配器都可以用来解决接口不兼容的问题，但它们各自有其优缺点。
+
+类适配器使用继承来实现适配，因此它只能适配一个具体的类。这意味着如果被适配类的子类也需要被适配，那么我们需要为每个子类都创建一个对应的适配器。此外，由于Java只支持单继承，所以如果目标接口或被适配类已经继承了其他类，那么我们就不能再使用类适配器了。
+
+相比之下，对象适配器使用组合来实现适配。这意味着它可以同时适配一个类及其所有子类。此外，由于对象适配器不依赖于继承关系，所以它没有单继承的限制。
+
+总之，在选择使用哪种类型的适配器时，应该根据具体情况进行判断。如果被适配类及其子类都需要被适配，或者目标接口或被适配类已经继承了其他类，则应该使用对象适配器；否则可以考虑使用更简单的类适配器。
+
+=== 桥接模式
+
+[.text-right]
+🧐ME: 桥接模式是什么？适用于哪些场景？有什么优缺点？和什么设计模式比较类似？
+
+🙂BING:
+桥接模式是一种结构型设计模式，它将抽象部分与它的实现部分分离，使它们都可以独立地变化。这种模式通过提供抽象化和实现化之间的桥接结构，来实现二者的解耦。
+
+.桥接模式适用于以下场景
+* 如果一个系统需要在构件的抽象化角色和具体化角色之间增加更多的灵活性，避免在两个层次之间建立静态的继承联系，通过桥接模式可以使它们在抽象层建立一个关联关系。
+* 对于那些不希望使用继承或因为多层次继承导致系统类的个数急剧增加的系统，桥接模式尤为适用。
+* 一个类存在两个独立变化的维度，且这两个维度都需要进行扩展。
+
+.桥接模式的优点
+1. 抽象和实现的分离
+2. 优秀的扩展能力
+3. 实现细节对客户透明
+
+.桥接模式的缺点
+桥接模式的引入会增加系统的理解与设计难度，由于聚合关联关系建立在抽象层，要求开发者针对抽象进行设计与编程。
+
+.与桥接模式类似的模式？
+与桥接模式比较类似的设计模式有适配器模式。两者都是为了让两个不相关或不兼容的类协同工作。但是适配器模式通常用于已有系统中，而桥接模式则用于在设计时就考虑到两个独立变化的维度，并让它们能够独立地变化。
+
+.桥接模式的类图
+[source,text]
+----
+    +----------------+         +----------------+
+    |  Abstraction   |         |  Implementor   |
+    +----------------+         +----------------+
+    | -implementor   |         |                |
+    +-------+--------+         +-------+--------+
+            |                          |
+            |                          |
+            v                          v
+  +---------+----------+     +---------+-----------+
+  | RefinedAbstraction |     | ConcreteImplementorA|
+  +--------------------+     +---------------------+
+                            /| ConcreteImplementorB|
+                           / +---------------------+
+                          /
+                         v
+                +--------+--------+
+                | BridgeClient    |
+                +-----------------+
+----
+
+.一个桥接模式的例子
+假设我们正在开发一个跨平台的图形绘制应用程序，它可以在 Windows 和 Linux 系统上运行。我们可以定义一个 Shape 类，它有一个 draw() 方法用于绘制形状。我们还可以定义两个子类 Rectangle 和 Circle 来表示矩形和圆形。
+
+但是，由于不同的操作系统有不同的绘图 API，所以我们需要在 draw() 方法中根据当前操作系统来调用不同的 API。这样一来，如果我们要增加对另一个操作系统的支持，就需要修改所有形状类的 draw() 方法。而且，如果我们要增加新的形状，也需要在新的形状类中实现对所有操作系统的支持。
+
+为了解决这个问题，我们可以使用桥接模式。首先，我们定义一个 DrawAPI 接口，它有一个 drawShape() 方法用于绘制形状。然后，我们定义两个实现了 DrawAPI 接口的类 WindowsDrawAPI 和 LinuxDrawAPI 来分别实现在 Windows 和 Linux 系统上绘制形状。
+
+接下来，在 Shape 类中增加一个成员变量 drawAPI 来保存一个 DrawAPI 对象，并在构造函数中初始化这个变量。然后，在 draw() 方法中调用 drawAPI.drawShape() 来绘制形状。
+
+这样一来，当我们要增加对新操作系统的支持时，只需要新增一个实现了 DrawAPI 接口的类即可；当我们要增加新的形状时，也只需要新增一个继承自 Shape 类的类即可。两个维度都可以独立地变化。
+[source,java]
+----
+// 抽象类 Shape，它有一个成员变量 drawAPI 来保存一个 DrawAPI 对象。
+// Shape 类还有两个子类 Rectangle 和 Circle 来分别表示矩形和圆形。
+abstract class Shape {
+    protected DrawAPI drawAPI;
+
+    protected Shape(DrawAPI drawAPI) {
+        this.drawAPI = drawAPI;
+    }
+
+    public abstract void draw();
+}
+
+// 实现类 Rectangle
+class Rectangle extends Shape {
+    public Rectangle(DrawAPI drawAPI) {
+        super(drawAPI);
+    }
+
+    @Override
+    public void draw() {
+        drawAPI.drawRectangle();
+    }
+}
+
+// 实现类 Circle
+class Circle extends Shape {
+    public Circle(DrawAPI drawAPI) {
+        super(drawAPI);
+    }
+
+    @Override
+    public void draw() {
+        drawAPI.drawCircle();
+    }
+}
+
+// 接口 DrawAPI 定义了两个方法 drawCircle() 和 drawRectangle() 来分别绘制圆形和矩形。
+// 我们定义了两个实现了 DrawAPI 接口的类 WindowsDrawAPI 和 LinuxDrawAPI 来分别实现在 Windows 和 Linux 系统上绘制图形。
+interface DrawAPI {
+    void drawCircle();
+    void drawRectangle();
+}
+
+// 实现类 WindowsDrawAPI
+class WindowsDrawAPI implements DrawAPI {
+    @Override
+    public void drawCircle() {
+        System.out.println("Draw circle on Windows");
+    }
+
+    @Override
+    public void drawRectangle() {
+        System.out.println("Draw rectangle on Windows");
+    }
+}
+
+// 实现类 LinuxDrawAPI
+class LinuxDrawAPI implements DrawAPI {
+    @Override
+    public void drawCircle() {
+        System.out.println("Draw circle on Linux");
+    }
+
+    @Override
+    public void drawRectangle() {
+        System.out.println("Draw rectangle on Linux");
+    }
+}
+
+// 测试代码
+public class BridgePatternDemo {
+   public static void main(String[] args) {
+      Shape rectangle = new Rectangle(new WindowsDrawAPI());
+      rectangle.draw();
+
+      Shape circle = new Circle(new LinuxDrawAPI());
+      circle.draw();
+   }
+}
+----
+
+=== 组合模式
+[.text-right]
+🧐ME: 组合模式是什么？适用于哪些场景？有什么优缺点？和什么设计模式比较类似？
+
+🙂BING:
+组合模式是一种结构型设计模式，它将对象组合成树形结构以表示“整体-部分”的结构层次。组合模式使客户端对单个对象和组合对象保持一致的方式处理。
+组合模式通过将**单个对象和组合对象用相同的接口**进行表示，使得单个对象和组合对象的使用具有一致性。这样，客户端可以以一致的方式处理单个对象和组合对象，而不必关心它们之间的区别。
+jdk中的 HashMap 就是使用了组合模式。
+
+.组合模式适用于
+1. 忽略差异：希望客户端可以忽略组合对象与单个对象的差异；
+2. 处理树形结构。
+
+.组合模式的优点
+1. 定义层次：清楚地定义分层次的复杂对象，表示对象的全部或部分层次；
+2. 忽略层次：让客户端忽略层次之间的差异，方便对整个层次结构进行控制；
+3. 简化客户端代码；
+4. 符合开闭原则。
+
+.组合模式的缺点
+1. 限制类型复杂：限制类型时，比较复杂；
+2. 使设计变得更加抽象；
+
+在设计模式中，有很多模式都和组合模式类似，都是将一部分工作委派给一个子类对象。比如装饰器模式为原对象增加了额外的功能，组合模式仅仅是对原对象进行的组合调用。
+
+.组合模式的类图
+[source,text]
+----
+                  ┌──────────────┐
+                  │  Component   │
+                  ├──────────────┤
+                  │ +operation() │
+                  └──────┬───────┘
+                         │
+           ┌─────────────┴─────────────┐
+           │                           │
+  ┌────────┴────────┐         ┌────────┴────────┐
+  │     Leaf        │         │    Composite    │
+  ├─────────────────┤         ├─────────────────┤
+  │ +operation()    │         │ +add()          │
+  └─────────────────┘         │ +remove()       │
+                              │ +getChild()     │
+                              └─────────────────┘
+
+----
+
+[source,java]
+----
+import java.util.ArrayList;
+import java.util.List;
+// Component 有两个子类，Composite 和 Leaf
+abstract class Component {
+    protected String name;
+
+    public Component(String name) {
+        this.name = name;
+    }
+
+    public abstract void add(Component c);
+
+    public abstract void remove(Component c);
+
+    public abstract void display(int depth);
+}
+
+// Composite 表示容器节点
+class Composite extends Component {
+    private List<Component> children = new ArrayList<>();
+
+    public Composite(String name) {
+        super(name);
+    }
+
+    @Override
+    public void add(Component c) {
+        children.add(c);
+    }
+
+    @Override
+    public void remove(Component c) {
+        children.remove(c);
+    }
+
+    @Override
+    public void display(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("-");
+        }
+        System.out.println(sb.toString() + name);
+        for (Component component : children) {
+            component.display(depth + 2);
+        }
+    }
+}
+
+// Leaf 类表示叶子节点
+class Leaf extends Component {
+
+    public Leaf(String name) {
+        super(name);
+    }
+
+    @Override
+    public void add(Component c) {
+        System.out.println("Cannot add to a leaf");
+    }
+
+    @Override
+    public void remove(Component c) {
+        System.out.println("Cannot remove from a leaf");
+    }
+
+    @Override
+    public void display(int depth) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            sb.append("-");
+        }
+        System.out.println(sb.toString() + name);
+    }
+}
+
+public class CompositePatternDemo {
+
+   public static void main(String[] args) {
+
+      Composite root = new Composite("root");
+      root.add(new Leaf("Leaf A"));
+      root.add(new Leaf("Leaf B"));
+
+      Composite comp = new Composite("Composite X");
+      comp.add(new Leaf("Leaf XA"));
+      comp.add(new Leaf("Leaf XB"));
+
+      root.add(comp);
+
+      Composite comp2 = new Composite("Composite XY");
+      comp2.add(new Leaf("Leaf XYA"));
+      comp2.add(new Leaf("Leaf XYB"));
+
+      comp.add(comp2);
+
+      root.add(new Leaf("Leaf C"));
+
+      Leaf leaf = new Leaf("Leaf D");
+      root.add(leaf);
+      root.remove(leaf);
+
+      root.display(1);
+   }
+}
+
+// 运行的结果为：
+// -root
+// ---Leaf A
+// ---Leaf B
+// ---Composite X
+// -----Leaf XA
+// -----Leaf XB
+// -----Composite XY
+// -------Leaf XYA
+// -------Leaf XYB
+// ---Leaf C
+----
+上面的代码定义了一个抽象的 Component 类，它有两个子类：Composite 和 Leaf。Composite 类表示容器节点，它可以包含子节点。Leaf 类表示叶子节点，它没有子节点。
+
+在 main 方法中，我们创建了一个根节点，并向其中添加了一些容器节点和叶子节点，最后调用 display 方法来显示整个树形结构。
