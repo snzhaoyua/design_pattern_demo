@@ -1,395 +1,471 @@
-=== Adaptor 适配器模式
+=== Decorator 装饰模式
 [quote]
-适配器模式是一种结构型设计模式，它能使不兼容的对象能够相互合作。适配器可担任两个对象间的封装器，它会接收对于一个对象的调用，并将其转换为另一个对象可识别的格式和接口1。
+装饰模式是一种结构型设计模式，它允许你通过将对象放入包含行为的特殊包装器对象中来动态地添加新功能。这种模式与继承关系的目的都是要扩展对象的功能，但是装饰模式可以提供比继承更多的灵活性。
 
-下面是一个简单的Java代码示例，演示了类适配器模式：
+. 装饰模式的优点
+* 装饰类和被装饰类可以独立发展，而不会相互耦合。
+* 装饰模式允许系统动态决定“贴上”一个需要的“装饰”，或者除掉一个不需要的“装饰”。
+
+.装饰模式的缺点
+* 程序复杂：需要编写更多的代码，生成更多的类，程序的复杂性增加了。
+* 动态/多层装饰：动态/多层装饰一个类时，程序更复杂。
+* 与装饰模式比较类似的设计模式有适配器模式和代理模式。
+
+.jdk中使用装饰模式的例子
+JDK中有很多装饰模式的例子。其中一个最著名的例子是Java IO库中的流。以InputStream为例，它有很多实现类，如FileInputStream、DataInputStream、BufferedInputStream和ObjectInputStream等。这些实现类都使用了装饰模式，保证了InputStream不变的前提下增加其他功能。1
+
+例如，如果要同时实现文件读取和可缓存，可以这样写：
+
+`new BufferedInputStream(new FileInputStream(""));`
+
+如果想实现基本数据类型读取+文件读取，就可以这样写：
+
+`new DataInputStream(new FileInputStream(""));`
+
+.类图
+[source,text]
+----
+       ┌─────────────┐
+       │  Component  │
+       └─────────────┘
+             △
+             ┃
+ ┌───────────┴───────────┐
+ │                       │
+┌┴────────────────┐    ┌─┴───────┐
+│ConcreteComponent│    │Decorator│
+└─────────────────┘    └─△───────┘
+                         │
+                         │
+                     ┌─────────────────┐
+                     │ConcreteDecorator│
+                     └─────────────────┘
+----
+其中，Component是一个抽象组件类，在装饰者模式中扮演着最重要的角色。ConcreteComponent是Component的具体实现。Decorator是一个通用的装饰接口或抽象类，内部保存了被装饰的Component对象。ConcreteDecorator是具体的装饰类，在原类的基础上进行装饰。
+
+.示例代码
 [source,java]
 ----
-// 源类
-public class Adaptee {
-    public void specificRequest() {
-        System.out.println("特殊请求");
-    }
+// 下面是一个简单的装饰模式的例子，它演示了如何使用装饰模式来动态地给一个对象添加新功能。
+
+// 首先，我们定义一个Component接口，它定义了一个operation方法：
+
+public interface Component {
+    void operation();
 }
 
-// 目标接口
-public interface Target {
-    public void request();
-}
-
-// 适配器类
-public class Adapter extends Adaptee implements Target {
+// 然后，我们定义一个ConcreteComponent类，它实现了Component接口：
+public class ConcreteComponent implements Component {
     @Override
-    public void request() {
-        specificRequest();
+    public void operation() {
+        System.out.println("ConcreteComponent operation");
     }
 }
 
-// 测试类
-public class AdapterTest {
-    public static void main(String[] args) {
-        Target target = new Adapter();
-        target.request();
-    }
-}
-----
+// 接下来，我们定义一个Decorator抽象类，它实现了Component接口，并且内部保存了一个被装饰的Component对象：
+public abstract class Decorator implements Component {
+    protected Component component;
 
-在这个例子中，Adaptee 类有一个 specificRequest() 方法，但是客户端希望调用 request() 方法。为了解决这个问题，我们创建了一个 Adapter 类，它继承自 Adaptee 类并实现了 Target 接口。在 Adapter 类中，我们重写了 request() 方法，并在其中调用了父类的 specificRequest() 方法。这样一来，客户端就可以通过调用 Adapter 类的 request() 方法来间接调用 Adaptee 类的 specificRequest() 方法了。
-
-==== 对象适配器模式
-对象适配器模式与类适配器模式类似，但它不是通过继承来实现适配，而是通过组合的方式。在对象适配器模式中，适配器类持有一个被适配类的实例，并实现目标接口。在目标接口的方法中，调用被适配类实例的相应方法来实现。
-
-下面是一个简单的Java代码示例，演示了对象适配器模式：
-[source,java]
-----
-// 源类
-public class Adaptee {
-    public void specificRequest() {
-        System.out.println("特殊请求");
-    }
-}
-
-// 目标接口
-public interface Target {
-    public void request();
-}
-
-// 适配器类
-public class Adapter implements Target {
-    private Adaptee adaptee;
-
-    public Adapter(Adaptee adaptee) {
-        this.adaptee = adaptee;
+    public Decorator(Component component) {
+        this.component = component;
     }
 
     @Override
-    public void request() {
-        adaptee.specificRequest();
+    public void operation() {
+        component.operation();
     }
 }
 
-// 测试类
-public class AdapterTest {
-    public static void main(String[] args) {
-        Target target = new Adapter(new Adaptee());
-        target.request();
+// 然后，我们定义一个ConcreteDecorator类，它继承自Decorator类，并且在operation方法中添加了新功能：
+public class ConcreteDecorator extends Decorator {
+    public ConcreteDecorator(Component component) {
+        super(component);
+    }
+
+    @Override
+    public void operation() {
+        super.operation();
+        addedFunction();
+    }
+
+    public void addedFunction() {
+        System.out.println("ConcreteDecorator addedFunction");
     }
 }
+
+// 最后，我们可以这样使用装饰模式：
+public class Main {
+    public static void main(String[] args) {
+        Component component = new ConcreteComponent();
+        Decorator decorator = new ConcreteDecorator(component);
+        decorator.operation();
+    }
+}
+// 运行结果为：
+
+// ConcreteComponent operation
+// ConcreteDecorator addedFunction
 ----
-在这个例子中，Adaptee 类有一个 specificRequest() 方法，但是客户端希望调用 request() 方法。为了解决这个问题，我们创建了一个 Adapter 类，它持有一个 Adaptee 类的实例并实现了 Target 接口。在 Adapter 类中，我们重写了 request() 方法，并在其中调用了被持有的 Adaptee 实例的 specificRequest() 方法。这样一来，客户端就可以通过调用 Adapter 类的 request() 方法来间接调用 Adaptee 类的 specificRequest() 方法了。
 
 [.text-right]
-🧐ME: 什么情况下使用对象适配器，什么情况下使用类适配器？
+🧐ME: 看起来和组合模式很像，有什么区别呢？
+
+🙂BING: 装饰模式和组合模式在结构上看起来很像，但它们的目的和用途是不同的：
+
+装饰模式的目的是在不改变原有对象的基础上，动态地给对象添加新功能。它通过创建一个装饰对象（即装饰者），动态地给一个对象添加新功能。
+
+而组合模式的目的是将对象组合成树形结构以表示“部分-整体”的层次结构。它使得客户端可以统一地对待单个对象和组合对象。
+
+简单来说，装饰模式关注的是如何在不改变原有对象的基础上给对象添加新功能，而组合模式关注的是如何将多个对象组合成一个整体。
+
+
+=== Facade 外观模式
+[quote]
+外观模式（Facade Pattern）是一种结构型设计模式。 适用场景 : 子系统复杂、层数复杂。 优点 : 简化调用、降低耦合、层次控制、符合迪米特法则。 缺点 : 子系统扩展风险、不符合开闭原则。 类似设计模式 : 中介者模式。
+
+.适用场景
+* 子系统复杂：子系统复杂，通过使用外观模式可以简化调用接口；
+* 层次复杂：系统结构层次复杂，每个层级都一个使用外观对象作为该层入口，可以简化层次间的调用接口1。
+
+.优点
+* 简化调用：简化复杂系统的调用过程，无需对子系统进行深入了解，即可完成调用；
+* 降低耦合：使用外观模式，只与外观对象进行交互，不与复杂的子系统直接进行交互，降低了系统间的依赖，使耦合关系更低；
+* 层次控制：层次结构复杂的系统，有些方法需要提供给系统外部调用，有些方法需要在内部使用，将提供给外部的功能定义在外观类中，这样既方便调用，也能将系统内部的细节隐藏起来；
+* 符合迪米特法则：最少知道原则。
+
+.缺点
+* 子系统扩展风险：系统内部扩展子系统时，容易产生风险；
+* 不符合开闭原则：外观模式扩展子系统时不符合开闭原则1。
+
+与其他设计模式比较类似的是中介者模式。中介者模式关注子系统内部之间的交互；而外观模式关注外部用户与子系统之间的交互。
+
+.jdk中使用使用外观模式的例子
+一个常见的例子是java.util.logging.Logger类，它为客户端提供了一个简单的接口来记录消息，但在底层它使用了许多其他类来管理日志记录的配置和输出。这些类包括LogManager、LogRecord、Handler和Formatter等，但客户端通常不需要直接与它们交互。
+
+
+.示例代码
+[source,java]
+----
+// 下面是一个简单的外观模式例子，它演示了如何使用外观模式来简化客户端与复杂子系统之间的交互。
+
+// 假设我们有一个复杂的计算机系统，它由多个组件组成，如CPU、内存和硬盘等。每个组件都有自己的一组操作，客户端可以使用这些操作来与计算机系统进行交互。
+
+class CPU {
+    public void freeze() { /* ... */ }
+    public void jump(long position) { /* ... */ }
+    public void execute() { /* ... */ }
+}
+
+class Memory {
+    public void load(long position, byte[] data) { /* ... */ }
+}
+
+class HardDrive {
+    public byte[] read(long lba, int size) { /* ... */ return null; }
+}
+// 如果客户端想要启动计算机，它需要执行一系列复杂的操作，如冻结CPU、从硬盘读取引导扇区、将引导扇区加载到内存中、跳转到内存中的引导代码并执行它等。这些操作非常复杂，对客户端来说很难正确执行。
+
+// 为了简化客户端与计算机系统之间的交互，我们可以引入一个外观类Computer，它提供了一个简单的start方法，用于启动计算机。在这个方法中，Computer类负责调用各个子系统的操作来完成启动过程。
+
+class Computer {
+    private CPU cpu;
+    private Memory memory;
+    private HardDrive hardDrive;
+
+    public Computer() {
+        this.cpu = new CPU();
+        this.memory = new Memory();
+        this.hardDrive = new HardDrive();
+    }
+
+    public void start() {
+        cpu.freeze();
+        long BOOT_ADDRESS = 1L;
+        long BOOT_SECTOR = 2L;
+        int SECTOR_SIZE = 3;
+        memory.load(BOOT_ADDRESS, hardDrive.read(BOOT_SECTOR, SECTOR_SIZE));
+        cpu.jump(BOOT_ADDRESS);
+        cpu.execute();
+    }
+}
+// 现在客户端只需要调用Computer类的start方法就可以启动计算机了，无需关心启动过程中涉及到的复杂细节。
+
+class Client {
+    public static void main(String[] args) {
+        Computer computer = new Computer();
+        computer.start();
+    }
+}
+----
+
+=== Flyweight 享元模式（轻量模式）
+[quote]
+享元模式（Flyweight Pattern）主要用于减少创建对象的数量，以减少内存占用和提高性能。这种类型的设计模式属于结构型模式，它提供了减少对象数量从而改善应用所需的对象结构的方式。享元模式尝试重用现有的同类对象，如果未找到匹配的对象，则创建新对象1。
+
+.享元模式适用于的场景
+* 系统中有大量相似对象；
+* 需要缓冲池的场景。
+
+.优点
+大大减少对象的创建，降低系统的内存，使效率提高。
+
+.缺点
+提高了系统的复杂度，需要分离出外部状态和内部状态，而且外部状态具有固有化的性质，不应该随着内部状态的变化而变化，否则会造成系统的混乱。
+
+与享元模式比较类似的设计模式是代理模式。
+
+.jdk中享元模式的例子
+JDK中有很多应用享元模式的例子。例如，包装类型如Byte、Integer都是不变类，因此，反复创建同一个值相同的包装类型是没有必要的。以Integer为例，如果我们通过Integer.valueOf()这个静态工厂方法创建Integer实例，当传入的int范围在-128~+127之间时，会直接返回缓存的Integer实例。
+
+.类图
+[source,text]
+----
+┌──────────────────┐
+│ FlyweightFactory │
+└──────────────────┘
+        │
+        │
+        ▼
+┌─────────────────┐
+│    Flyweight    │◀--------┓
+└─────────────────┘         │
+        ▲                   │
+        │                   │
+        │                   │
+┌─────────────────┐   ┌─────────────────────────┐
+│ConcreteFlyweight│   │UnsharedConcreteFlyweight│
+└─────────────────┘   └─────────────────────────┘
+----
+
+.示例代码
+[source,java]
+----
+// 假设我们正在开发一个文本编辑器，它可以让用户改变选定文本的颜色。一种简单的实现方法是，为每个字符创建一个包含颜色信息的对象。但是，如果文本非常长，这样做会创建大量的对象，消耗大量的内存。
+
+// 使用享元模式，我们可以创建一个颜色工厂，它维护了一个颜色对象的缓存。当用户想要改变文本颜色时，我们首先检查颜色工厂中是否已经有了对应颜色的对象。如果有，我们直接使用这个对象；如果没有，我们创建一个新的颜色对象并将其添加到缓存中。
+
+// 这样一来，即使文本非常长，颜色种类有限，我们也只需要创建有限个颜色对象。这样就大大减少了内存占用。
+import java.util.HashMap;
+import java.util.Map;
+
+class Color {
+    private final int r;
+    private final int g;
+    private final int b;
+
+    public Color(int r, int g, int b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+    }
+
+    @Override
+    public String toString() {
+        return "Color{" +
+                "r=" + r +
+                ", g=" + g +
+                ", b=" + b +
+                '}';
+    }
+}
+
+class ColorFactory {
+    private Map<String, Color> colorMap = new HashMap<>();
+
+    public Color getColor(int r, int g, int b) {
+        String key = r + "," + g + "," + b;
+        Color color = colorMap.get(key);
+        if (color == null) {
+            color = new Color(r, g, b);
+            colorMap.put(key, color);
+        }
+        return color;
+    }
+}
+
+public class FlyweightExample {
+    public static void main(String[] args) {
+        ColorFactory factory = new ColorFactory();
+        Color c1 = factory.getColor(255, 0, 0);
+        System.out.println(c1);
+        Color c2 = factory.getColor(0, 255, 0);
+        System.out.println(c2);
+        Color c3 = factory.getColor(255, 0, 0); // 返回的是同一个颜色对象，成功地共享了颜色对象
+        System.out.println(c3);
+    }
+}
+----
+在这个例子中，ColorFactory类维护了一个颜色对象的缓存。当我们调用getColor方法时，它首先检查缓存中是否已经有了对应颜色的对象。如果有，它直接返回这个对象；如果没有，它创建一个新的颜色对象并将其添加到缓存中。
+
+运行这段代码，你会发现第一次和第三次调用getColor方法时传入的参数相同，但是返回的是同一个颜色对象。这就说明我们成功地共享了颜色对象。
+
+=== Proxy 代理模式
+[quote]
+代理模式是一种设计模式，它为其他对象提供一种代理以控制对这个对象的访问1。代理模式可以在不修改被代理对象的基础上，通过扩展代理类，进行一些功能的附加与增强。
+
+.优点
+职责清晰、高扩展性和智能化。
+
+.缺点
+由于在客户端和真实主题之间增加了代理对象，因此有些类型的代理模式可能会造成请求的处理速度变慢，而且实现代理模式需要额外的工作，有些代理模式的实现非常复杂。
+
+.适用场景
+远程代理、虚拟代理、Copy-on-Write 代理、保护（Protect or Access）代理、Cache 代理、防火墙（Firewall）代理、同步化（Synchronization）代理和智能引用（Smart Reference）代理。
+
+它与装饰器模式比较类似，但装饰器模式是为了增强功能，而代理模式是为了加以控制2。
+
+.jdk中的库，以及一些例子
+JDK中有一个动态代理的例子。它使用了java.lang.reflect.Proxy类和InvocationHandler接口来实现动态代理。你可以通过调用Proxy.newProxyInstance()方法来创建一个代理对象，并传入一个实现了InvocationHandler接口的对象来自定义处理逻辑。
+当你使用代理对象调用方法时，这个方法的调用会被转发到实现了InvocationHandler接口类的invoke()方法来调用。
+Spring AOP、Hibernate数据查询、测试框架的后端mock、RPC远程调用、Java注解对象获取、日志、用户鉴权、全局性异常处理、性能监控，甚至事务处理等都使用了动态代理，下文中可以找到一个远程方法调用的示例。
+
+.类图
+[source,text]
+----
+　　　　　　　┌───────────────┐
+　　　　　　　│　　Subject　 　│
+　　　　　　　├───────────────┤
+　　　　　　　│＋Request() 　  │
+　　　　　　　└───────────────┘
+　　　　　　　　　 │
+ ┌───────────────┴───────────────┐
+ │                               │
+┌───────────┐                 ┌───────────────┐
+│Proxy      │                 │ RealSubject   │
+├───────────┤                 ├───────────────┤
+│＋Request()│                 │＋Request()     │
+└───────────┘                 └───────────────┘
+----
+
+.示例代码
+[source,java]
+----
+interface Subject {
+    void request();
+}
+
+class RealSubject implements Subject {
+    public void request() {
+        System.out.println("RealSubject: Handling request.");
+    }
+}
+
+class Proxy implements Subject {
+    private RealSubject realSubject;
+
+    public Proxy(RealSubject realSubject) {
+        this.realSubject = realSubject;
+    }
+
+    public void request() {
+        System.out.println("Proxy: Checking preconditions before firing a real request.");
+        if (checkAccess()) {
+            this.realSubject.request();
+            this.logAccess();
+        }
+    }
+
+    private boolean checkAccess() {
+        System.out.println("Proxy: Checking access prior to firing a real request.");
+        return true;
+    }
+
+    private void logAccess() {
+        System.out.println("Proxy: Logging the time of the request.");
+    }
+}
+
+class Client {
+    public static void main(String[] args) {
+        System.out.println("Client: Executing the client code with a real subject:");
+        RealSubject realSubject = new RealSubject();
+        realSubject.request();
+
+        System.out.println("\nClient: Executing the same client code with a proxy:");
+        Proxy proxy = new Proxy(realSubject);
+        proxy.request();
+    }
+}
+----
+[.text-right]
+🧐ME: 看起来和桥接模式很像，有什么区别？
 
 🙂BING:
-对象适配器和类适配器都可以用来解决接口不兼容的问题，但它们各自有其优缺点。
+代理模式和桥接模式都属于结构型设计模式，但它们的目的和应用场景不同。
 
-类适配器使用继承来实现适配，因此它只能适配一个具体的类。这意味着如果被适配类的子类也需要被适配，那么我们需要为每个子类都创建一个对应的适配器。此外，由于Java只支持单继承，所以如果目标接口或被适配类已经继承了其他类，那么我们就不能再使用类适配器了。
+代理模式在不改变原始类接口的条件下，为原始类定义一个代理类，主要目的是控制访问，而非加强功能。它主要增强的是非主干或者说非业务性的功能1。
 
-相比之下，对象适配器使用组合来实现适配。这意味着它可以同时适配一个类及其所有子类。此外，由于对象适配器不依赖于继承关系，所以它没有单继承的限制。
+桥接模式的目的是将接口部分和实现部分分离，从而让它们可以较为容易、也相对独立地加以改变。它主要是分离接口部分和实现部分，应对两个（或多个）独立变化的维度1。
 
-总之，在选择使用哪种类型的适配器时，应该根据具体情况进行判断。如果被适配类及其子类都需要被适配，或者目标接口或被适配类已经继承了其他类，则应该使用对象适配器；否则可以考虑使用更简单的类适配器。
+这两种模式都可以称为Wrapper模式，也就是通过Wrapper类二次封装原始类。但它们解决的问题不同。
 
-=== Bridge 桥接模式
-[quote]
-桥接模式是一种结构型设计模式，它将抽象部分与它的实现部分分离，使它们都可以独立地变化。这种模式通过提供抽象化和实现化之间的桥接结构，来实现二者的解耦。
-
-.桥接模式适用于以下场景
-* 如果一个系统需要在构件的抽象化角色和具体化角色之间增加更多的灵活性，避免在两个层次之间建立静态的继承联系，通过桥接模式可以使它们在抽象层建立一个关联关系。
-* 对于那些不希望使用继承或因为多层次继承导致系统类的个数急剧增加的系统，桥接模式尤为适用。
-* 一个类存在两个独立变化的维度，且这两个维度都需要进行扩展。
-
-.桥接模式的优点
-1. 抽象和实现的分离
-2. 优秀的扩展能力
-3. 实现细节对客户透明
-
-.桥接模式的缺点
-桥接模式的引入会增加系统的理解与设计难度，由于聚合关联关系建立在抽象层，要求开发者针对抽象进行设计与编程。
-
-.与桥接模式类似的模式？
-与桥接模式比较类似的设计模式有适配器模式。两者都是为了让两个不相关或不兼容的类协同工作。但是适配器模式通常用于已有系统中，而桥接模式则用于在设计时就考虑到两个独立变化的维度，并让它们能够独立地变化。
-
-.桥接模式的类图
-[source,text]
-----
-    +----------------+         +----------------+
-    |  Abstraction   |         |  Implementor   |
-    +----------------+         +----------------+
-    | -implementor   |         |                |
-    +-------+--------+         +-------+--------+
-            |                          |
-            |                          |
-            v                          v
-  +---------+----------+     +---------+-----------+
-  | RefinedAbstraction |     | ConcreteImplementorA|
-  +--------------------+     +---------------------+
-                            /| ConcreteImplementorB|
-                           / +---------------------+
-                          /
-                         v
-                +--------+--------+
-                | BridgeClient    |
-                +-----------------+
-----
-
-.一个桥接模式的例子
-假设我们正在开发一个跨平台的图形绘制应用程序，它可以在 Windows 和 Linux 系统上运行。我们可以定义一个 Shape 类，它有一个 draw() 方法用于绘制形状。我们还可以定义两个子类 Rectangle 和 Circle 来表示矩形和圆形。
-
-但是，由于不同的操作系统有不同的绘图 API，所以我们需要在 draw() 方法中根据当前操作系统来调用不同的 API。这样一来，如果我们要增加对另一个操作系统的支持，就需要修改所有形状类的 draw() 方法。而且，如果我们要增加新的形状，也需要在新的形状类中实现对所有操作系统的支持。
-
-为了解决这个问题，我们可以使用桥接模式。首先，我们定义一个 DrawAPI 接口，它有一个 drawShape() 方法用于绘制形状。然后，我们定义两个实现了 DrawAPI 接口的类 WindowsDrawAPI 和 LinuxDrawAPI 来分别实现在 Windows 和 Linux 系统上绘制形状。
-
-接下来，在 Shape 类中增加一个成员变量 drawAPI 来保存一个 DrawAPI 对象，并在构造函数中初始化这个变量。然后，在 draw() 方法中调用 drawAPI.drawShape() 来绘制形状。
-
-这样一来，当我们要增加对新操作系统的支持时，只需要新增一个实现了 DrawAPI 接口的类即可；当我们要增加新的形状时，也只需要新增一个继承自 Shape 类的类即可。两个维度都可以独立地变化。
+.示例代码（RMI）
 [source,java]
 ----
-// 抽象类 Shape，它有一个成员变量 drawAPI 来保存一个 DrawAPI 对象。
-// Shape 类还有两个子类 Rectangle 和 Circle 来分别表示矩形和圆形。
-abstract class Shape {
-    protected DrawAPI drawAPI;
+// 下面是一个简单的RMI（远程方法调用）例子，它演示了如何在服务器端创建一个远程对象并在客户端调用它的方法。
 
-    protected Shape(DrawAPI drawAPI) {
-        this.drawAPI = drawAPI;
-    }
+// 首先，我们需要创建一个远程接口，该接口定义了客户端可以远程调用的方法。例如，我们可以创建一个名为HelloInterface的接口，它定义了一个名为sayHello的方法：
 
-    public abstract void draw();
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public interface HelloInterface extends Remote {
+    public String sayHello() throws RemoteException;
 }
 
-// 实现类 Rectangle
-class Rectangle extends Shape {
-    public Rectangle(DrawAPI drawAPI) {
-        super(drawAPI);
+//  然后，我们需要实现这个接口并创建一个远程对象。例如，我们可以创建一个名为HelloImpl的类，它实现了HelloInterface接口并继承了UnicastRemoteObject类：
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class HelloImpl extends UnicastRemoteObject implements HelloInterface {
+    private String message;
+
+    public HelloImpl(String msg) throws RemoteException {
+        this.message = msg;
     }
 
-    @Override
-    public void draw() {
-        drawAPI.drawRectangle();
-    }
-}
-
-// 实现类 Circle
-class Circle extends Shape {
-    public Circle(DrawAPI drawAPI) {
-        super(drawAPI);
-    }
-
-    @Override
-    public void draw() {
-        drawAPI.drawCircle();
+    public String sayHello() throws RemoteException {
+        return message;
     }
 }
 
-// 接口 DrawAPI 定义了两个方法 drawCircle() 和 drawRectangle() 来分别绘制圆形和矩形。
-// 我们定义了两个实现了 DrawAPI 接口的类 WindowsDrawAPI 和 LinuxDrawAPI 来分别实现在 Windows 和 Linux 系统上绘制图形。
-interface DrawAPI {
-    void drawCircle();
-    void drawRectangle();
-}
+// 接下来，我们需要启动RMI注册服务，并在其中注册我们的远程对象。例如，我们可以创建一个名为HelloServer的类来完成这个任务：
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
 
-// 实现类 WindowsDrawAPI
-class WindowsDrawAPI implements DrawAPI {
-    @Override
-    public void drawCircle() {
-        System.out.println("Draw circle on Windows");
-    }
-
-    @Override
-    public void drawRectangle() {
-        System.out.println("Draw rectangle on Windows");
-    }
-}
-
-// 实现类 LinuxDrawAPI
-class LinuxDrawAPI implements DrawAPI {
-    @Override
-    public void drawCircle() {
-        System.out.println("Draw circle on Linux");
-    }
-
-    @Override
-    public void drawRectangle() {
-        System.out.println("Draw rectangle on Linux");
-    }
-}
-
-// 测试代码
-public class BridgePatternDemo {
-   public static void main(String[] args) {
-      Shape rectangle = new Rectangle(new WindowsDrawAPI());
-      rectangle.draw();
-
-      Shape circle = new Circle(new LinuxDrawAPI());
-      circle.draw();
-   }
-}
-----
-
-=== Composite 组合模式
-[quote]
-组合模式是一种结构型设计模式，它将对象组合成树形结构以表示“整体-部分”的结构层次。组合模式使客户端对单个对象和组合对象保持一致的方式处理。
-
-组合模式通过将**单个对象和组合对象用相同的接口**进行表示，使得单个对象和组合对象的使用具有一致性。这样，客户端可以以一致的方式处理单个对象和组合对象，而不必关心它们之间的区别。
-[red]#如果没有组合模式，客户端可能需要编写大量的条件语句来判断当前处理的是单个对象还是组合对象，并根据不同情况采取不同的操作。这会导致代码复杂度增加，可维护性降低。#
-jdk中的 HashMap 就是使用了组合模式。
-
-.组合模式适用于
-1. 忽略差异：希望客户端可以忽略组合对象与单个对象的差异；
-2. 处理树形结构。
-
-.组合模式的优点
-1. 定义层次：清楚地定义分层次的复杂对象，表示对象的全部或部分层次；
-2. 忽略层次：让客户端忽略层次之间的差异，方便对整个层次结构进行控制；
-3. 简化客户端代码；
-4. 符合开闭原则。
-
-.组合模式的缺点
-1. 限制类型复杂：限制类型时，比较复杂；
-2. 使设计变得更加抽象；
-
-在设计模式中，有很多模式都和组合模式类似，都是将一部分工作委派给一个子类对象。比如装饰器模式为原对象增加了额外的功能，组合模式仅仅是对原对象进行的组合调用。
-
-.组合模式的类图
-[source,text]
-----
-                  ┌──────────────┐
-                  │  Component   │
-                  ├──────────────┤
-                  │ +operation() │
-                  └──────┬───────┘
-                         │
-           ┌─────────────┴─────────────┐
-           │                           │
-  ┌────────┴────────┐         ┌────────┴────────┐
-  │     Leaf        │         │    Composite    │
-  ├─────────────────┤         ├─────────────────┤
-  │ +operation()    │         │ +add()          │
-  └─────────────────┘         │ +remove()       │
-                              │ +getChild()     │
-                              └─────────────────┘
-
-----
-
-[source,java]
-----
-import java.util.ArrayList;
-import java.util.List;
-// Component 有两个子类，Composite 和 Leaf
-abstract class Component {
-    protected String name;
-
-    public Component(String name) {
-        this.name = name;
-    }
-
-    public abstract void add(Component c);
-
-    public abstract void remove(Component c);
-
-    public abstract void display(int depth);
-}
-
-// Composite 表示容器节点
-class Composite extends Component {
-    private List<Component> children = new ArrayList<>();
-
-    public Composite(String name) {
-        super(name);
-    }
-
-    @Override
-    public void add(Component c) {
-        children.add(c);
-    }
-
-    @Override
-    public void remove(Component c) {
-        children.remove(c);
-    }
-
-    @Override
-    public void display(int depth) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < depth; i++) {
-            sb.append("-");
-        }
-        System.out.println(sb.toString() + name);
-        for (Component component : children) {
-            component.display(depth + 2);
+public class HelloServer {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+            HelloImpl service = new HelloImpl("hello, world!");
+            Naming.rebind("Hello", service);
+            System.out.println("Hello Server is ready.");
+        } catch (Exception e) {
+            System.out.println("Hello Server failed: " + e);
         }
     }
 }
 
-// Leaf 类表示叶子节点
-class Leaf extends Component {
+// 最后，我们需要在客户端查找远程对象并调用其方法。例如，我们可以创建一个名为HelloClient的类来完成这个任务：
+import java.rmi.Naming;
 
-    public Leaf(String name) {
-        super(name);
-    }
-
-    @Override
-    public void add(Component c) {
-        System.out.println("Cannot add to a leaf");
-    }
-
-    @Override
-    public void remove(Component c) {
-        System.out.println("Cannot remove from a leaf");
-    }
-
-    @Override
-    public void display(int depth) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < depth; i++) {
-            sb.append("-");
+public class HelloClient {
+    public static void main(String[] argv) {
+        try {
+            HelloInterface hello = (HelloInterface) Naming.lookup("Hello");
+            System.out.println(hello.sayHello());
+        } catch (Exception e) {
+            System.out.println("HelloClient exception: " + e);
         }
-        System.out.println(sb.toString() + name);
     }
 }
-
-public class CompositePatternDemo {
-
-   public static void main(String[] args) {
-
-      Composite root = new Composite("root");
-      root.add(new Leaf("Leaf A"));
-      root.add(new Leaf("Leaf B"));
-
-      Composite comp = new Composite("Composite X");
-      comp.add(new Leaf("Leaf XA"));
-      comp.add(new Leaf("Leaf XB"));
-
-      root.add(comp);
-
-      Composite comp2 = new Composite("Composite XY");
-      comp2.add(new Leaf("Leaf XYA"));
-      comp2.add(new Leaf("Leaf XYB"));
-
-      comp.add(comp2);
-
-      root.add(new Leaf("Leaf C"));
-
-      Leaf leaf = new Leaf("Leaf D");
-      root.add(leaf);
-      root.remove(leaf);
-
-      root.display(1);
-   }
-}
-
-// 运行的结果为：
-// -root
-// ---Leaf A
-// ---Leaf B
-// ---Composite X
-// -----Leaf XA
-// -----Leaf XB
-// -----Composite XY
-// -------Leaf XYA
-// -------Leaf XYB
-// ---Leaf C
+//  这就是一个简单的RMI例子。你可以尝试运行上面的代码来查看它是如何工作的。
 ----
-上面的代码定义了一个抽象的 Component 类，它有两个子类：Composite 和 Leaf。Composite 类表示容器节点，它可以包含子节点。Leaf 类表示叶子节点，它没有子节点。
+[.text-right]
+🧐ME: 我没看出来这里面哪里用到了代理模式。
 
-在 main 方法中，我们创建了一个根节点，并向其中添加了一些容器节点和叶子节点，最后调用 display 方法来显示整个树形结构。
+🙂BING:
+在这个例子中，代理模式体现在客户端调用远程对象的方法时。当客户端调用hello.sayHello()方法时，实际上是调用了一个本地代理对象（存根）的sayHello方法。这个本地代理对象负责与服务器通信并将客户端的请求转发给远程对象。当远程对象执行完方法后，它会将结果返回给本地代理对象，然后由本地代理对象将结果返回给客户端。
+
+因此，在这个例子中，本地代理对象（存根）充当了客户端和远程对象之间的中介，它实现了代理模式中的代理角色。
+
