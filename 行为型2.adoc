@@ -142,120 +142,828 @@ public class Test {
 
 === Strategy 策略模式
 [quote]
+策略模式是一种行为型设计模式，它定义了一系列的算法，把它们封装在不同的类中，使得它们可以相互替换。策略模式可以根据不同的场景或需求选择不同的算法，避免使用多重条件判断语句，提高了代码的可扩展性和可维护性。
+
 .优点
+* 算法可以自由切换。
+* 避免使用多重条件判断。
+* 扩展性良好。
+* 实现了算法和使用者的解耦。
 
 .缺点
+* 策略类会增多。
+* 所有策略类都需要对外暴露。
+* 客户端必须知道所有的策略类，并自行决定使用哪一个策略类。
 
 .适用场景
+* 一个系统有许多类，它们之间的区别仅在于它们的行为。
+* 一个系统需要动态地在几种算法中选择一种。
+* 如果一个对象有很多的行为，如果不用恰当的模式，这些行为就只好使用多重的条件选择语句来实现。
 
+策略模式和状态模式比较类似，都是通过封装不同的行为来实现动态切换。但是状态模式是根据对象内部状态来改变行为，而策略模式是根据外部环境来改变行为。状态模式通常由状态对象自己控制状态转换，而策略模式由客户端或环境类控制策略选择。
 
 .jdk中的库，以及一些例子
-
+JDK中有很多使用策略模式的例子，比如java.util.Comparator接口就是一个策略接口，它定义了比较两个对象的方法。不同的实现类可以提供不同的比较算法，例如按照姓名排序、按照年龄排序等。客户端可以根据需要选择合适的比较器来对集合进行排序。
 
 .类图
 [source,text]
 ----
-
++-----------------+       +-----------------+
+|    Context      |       |    Strategy     |
++-----------------+<|-----+-----------------+
+| -strategy       |       | +doOperation()  |
+| +executeStrategy|       +-----------------+
++-----------------+              /|\
+                                  |
+                  +---------------+---------------+
+                  |                               |
+                  |                               |
+          +-----------------+             +------------------+
+          | OperationAdd    |             | OperationSubtract|
+          +-----------------+             +------------------+
+          | +doOperation()  |             | +doOperation()   |
+          +-----------------+             +------------------+
 ----
+这个类图表示了策略模式的基本结构，其中Strategy是一个抽象接口，定义了一个算法的行为。Context是一个环境类，持有一个Strategy的引用，并根据不同的策略执行不同的操作。OperationAdd和OperationSubtract是两个具体的策略类，实现了Strategy接口，并提供了不同的算法实现。
 
 .示例代码
 [source,java]
 ----
+//定义一个策略接口
+public interface Strategy {
+    //执行某种算法的方法
+    public void execute();
+}
 
+//定义一个具体的策略类，实现了策略接口
+public class ConcreteStrategyA implements Strategy {
+    @Override
+    public void execute() {
+        //具体的算法逻辑
+        System.out.println("执行策略A");
+    }
+}
+
+//定义另一个具体的策略类，实现了策略接口
+public class ConcreteStrategyB implements Strategy {
+    @Override
+    public void execute() {
+        //具体的算法逻辑
+        System.out.println("执行策略B");
+    }
+}
+
+//定义一个环境类，持有一个策略对象的引用，并根据不同的策略执行不同的操作
+public class Context {
+    //策略对象的引用
+    private Strategy strategy;
+
+    //构造方法，传入一个具体的策略对象
+    public Context(Strategy strategy) {
+        this.strategy = strategy;
+    }
+
+    //执行策略对象的方法
+    public void executeStrategy() {
+        strategy.execute();
+    }
+}
+
+//测试类，演示如何使用环境类和策略对象来完成不同的行为
+public class Test {
+    public static void main(String[] args) {
+        //创建一个具体的策略对象A
+        Strategy strategyA = new ConcreteStrategyA();
+        //创建一个环境对象，并传入策略对象A
+        Context context = new Context(strategyA);
+        //执行环境对象的方法，调用策略对象A的方法
+        context.executeStrategy();
+
+        //创建一个具体的策略对象B
+        Strategy strategyB = new ConcreteStrategyB();
+        //改变环境对象的策略对象为B
+        context = new Context(strategyB);
+        //执行环境对象的方法，调用策略对象B的方法
+        context.executeStrategy();
+    }
+}
 ----
+这个示例代码表示了如何使用策略模式来实现不同的算法。其中Strategy是一个抽象接口，定义了一个execute()方法。ConcreteStrategyA和ConcreteStrategyB是两个具体的策略类，实现了Strategy接口，并提供了不同的算法实现。Context是一个环境类，持有一个Strategy的引用，并根据不同的策略执行不同的操作。Test是一个测试类，演示了如何使用Context和Strategy对象来完成不同的行为。
+
 === Chain of Responsibility 责任链模式
 [quote]
+责任链模式是一种行为型设计模式，它可以让多个对象都有机会处理请求，从而避免请求的发送者和接收者之间的耦合关系。责任链模式把多个处理器（也称为处理节点）串成一条链，然后让请求在链上依次传递，直到有一个处理器能够处理它为止。
 
 .优点
+* 降低耦合度。它将请求的发送者和接收者解耦。
+* 简化了对象。使得对象不需要知道链的结构。
+* 增强给对象指派职责的灵活性。通过改变链内的成员或者调动它们的次序，允许动态地新增或者删除责任。
+* 增加新的请求处理类很方便。
 
 .缺点
+* 不能保证请求一定被接收。
+* 系统性能将受到一定影响，而且在进行代码调试时不太方便，可能会造成循环调用。
+* 可能不容易观察运行时的特征，有碍于除错。
 
 .适用场景
+* 有多个对象可以处理同一个请求，具体哪个对象处理该请求由运行时刻自动确定。
+* 在不明确指定接收者的情况下，向多个对象中的一个提交一个请求。
+* 可动态指定一组对象处理请求。
 
+责任链模式和命令模式比较类似，都是将请求封装成一个对象，并传递给一个处理器。不同之处在于，命令模式只有一个接收者，而责任链模式有多个接收者，并且每个接收者都可以决定是否继续传递请求或者直接处理请求。命令模式更强调对请求的封装和解耦，而责任链模式更强调对请求的分发和灵活性。
 
 .jdk中的库，以及一些例子
-
+JDK中有使用责任链模式的例子，例如java.util.logging.Logger类。Logger类可以设置父Logger，并且可以设置是否使用父Logger的Handler来处理日志消息。当一个Logger接收到一个日志消息时，它会根据自己的级别和过滤器来判断是否记录该消息，然后根据是否使用父Logger的Handler来决定是否将该消息传递给父Logger。这样就形成了一个日志处理器的责任链。
 
 .类图
 [source,text]
 ----
-
+    ┌───────────────┐
+    │  Handler      │
+    ├───────────────┤
+    │+next:Handler  │
+    ├───────────────┤
+    │+handleRequest()│
+    └───────────────┘
+          △
+          │
+          └────────────────────────┐
+                                   │
+                                   ▼
+    ┌────────────────┐     ┌────────────────┐     ┌────────────────┐
+    │ConcreteHandler │     │ConcreteHandler │     │ConcreteHandler │
+    ├────────────────┤     ├────────────────┤     ├────────────────┤
+    │                │     │                │     │                │
+    ├────────────────┤     ├────────────────┤     ├────────────────┤
+    │+handleRequest()│◀───▶│+handleRequest()│◀───▶│+handleRequest()│
+    └────────────────┘     └────────────────┘     └────────────────┘
 ----
+Handler：抽象处理器，定义了一个处理请求的接口，以及一个指向下一个处理器的引用。
+ConcreteHandler：具体处理器，实现了Handler接口，根据自己的逻辑来判断是否处理请求或者传递给下一个处理器。
+
 
 .示例代码
 [source,java]
 ----
+// 定义一个抽象的日志处理器接口
+public interface LogHandler {
+    // 定义日志级别的常量
+    int DEBUG = 1;
+    int INFO = 2;
+    int ERROR = 3;
 
+    // 处理日志的方法，参数为日志对象
+    void handleLog(Log log);
+
+    // 设置下一个处理器的方法，参数为日志处理器对象
+    void setNextHandler(LogHandler nextHandler);
+}
+
+// 定义一个具体的日志处理器类，用来将日志输出到控制台
+public class ConsoleLogHandler implements LogHandler {
+    // 定义当前处理器能够处理的日志级别
+    private int level = DEBUG;
+
+    // 定义下一个处理器的引用
+    private LogHandler nextHandler;
+
+    @Override
+    public void handleLog(Log log) {
+        // 如果当前日志的级别小于等于当前处理器能够处理的级别，就将日志输出到控制台
+        if (log.getLevel() <= level) {
+            System.out.println("ConsoleLogHandler: " + log.getMessage());
+        }
+        // 如果当前处理器有下一个处理器，就将日志传递给下一个处理器
+        if (nextHandler != null) {
+            nextHandler.handleLog(log);
+        }
+    }
+
+    @Override
+    public void setNextHandler(LogHandler nextHandler) {
+        this.nextHandler = nextHandler;
+    }
+}
+
+// 定义一个具体的日志处理器类，用来将日志输出到文件
+public class FileLogHandler implements LogHandler {
+    // 定义当前处理器能够处理的日志级别
+    private int level = INFO;
+
+    // 定义下一个处理器的引用
+    private LogHandler nextHandler;
+
+    @Override
+    public void handleLog(Log log) {
+        // 如果当前日志的级别小于等于当前处理器能够处理的级别，就将日志输出到文件
+        if (log.getLevel() <= level) {
+            System.out.println("FileLogHandler: " + log.getMessage());
+            // 这里可以使用文件操作类来实际写入文件，这里为了简单起见，省略了文件操作的细节
+        }
+        // 如果当前处理器有下一个处理器，就将日志传递给下一个处理器
+        if (nextHandler != null) {
+            nextHandler.handleLog(log);
+        }
+    }
+
+    @Override
+    public void setNextHandler(LogHandler nextHandler) {
+        this.nextHandler = nextHandler;
+    }
+}
+
+// 定义一个具体的日志处理器类，用来将日志输出到数据库
+public class DatabaseLogHandler implements LogHandler {
+    // 定义当前处理器能够处理的日志级别
+    private int level = ERROR;
+
+    // 定义下一个处理器的引用
+    private LogHandler nextHandler;
+
+    @Override
+    public void handleLog(Log log) {
+        // 如果当前日志的级别小于等于当前处理器能够处理的级别，就将日志输出到数据库
+        if (log.getLevel() <= level) {
+            System.out.println("DatabaseLogHandler: " + log.getMessage());
+            // 这里可以使用数据库操作类来实际写入数据库，这里为了简单起见，省略了数据库操作的细节
+        }
+        // 如果当前处理器有下一个处理器，就将日志传递给下一个处理器
+        if (nextHandler != null) {
+            nextHandler.handleLog(log);
+        }
+    }
+
+    @Override
+    public void setNextHandler(LogHandler nextHandler) {
+        this.nextHandler = nextHandler;
+    }
+}
+
+// 定义一个日志类，用来封装日志的信息
+public class Log {
+    // 定义日志的级别和消息属性
+    private int level;
+    private String message;
+
+    // 构造方法，传入级别和消息参数
+    public Log(int level, String message) {
+         this.level = level;
+         this.message = message;
+     }
+
+     // 获取和设置级别和消息的方法
+     public int getLevel() {
+         return level;
+     }
+
+     public void setLevel(int level) {
+         this.level = level;
+     }
+
+     public String getMessage() {
+         return message;
+     }
+
+     public void setMessage(String message) {
+         this.message = message;
+     }
+}
+
+// 定义一个测试类，用来创建一个责任链，并向其中发送不同级别的日志
+public class Test {
+    public static void main(String[] args) {
+        // 创建三个具体的日志处理器对象
+        LogHandler consoleLogHandler = new ConsoleLogHandler();
+        LogHandler fileLogHandler = new FileLogHandler();
+        LogHandler databaseLogHandler = new DatabaseLogHandler();
+
+        // 将日志处理器对象连接成一个责任链，控制台->文件->数据库
+        consoleLogHandler.setNextHandler(fileLogHandler);
+        fileLogHandler.setNextHandler(databaseLogHandler);
+
+        // 创建三个不同级别的日志对象
+        Log debugLog = new Log(LogHandler.DEBUG, "This is a debug log.");
+        Log infoLog = new Log(LogHandler.INFO, "This is an info log.");
+        Log errorLog = new Log(LogHandler.ERROR, "This is an error log.");
+
+        // 向责任链发送日志对象
+        consoleLogHandler.handleLog(debugLog);
+        consoleLogHandler.handleLog(infoLog);
+        consoleLogHandler.handleLog(errorLog);
+    }
+}
 ----
 === Mediator 中介者模式
 [quote]
+中介者模式是一种行为型设计模式，它用一个中介对象来封装一系列对象之间的交互，使得各对象不需要显式地相互引用，从而降低了耦合度，也可以独立地改变它们之间的交互。
 
 .优点
+* 降低了类的复杂度，将一对多转化成了一对一。
+* 各个类之间的解耦。
+* 符合迪米特原则。
 
 .缺点
+* 中介者会庞大，变得复杂难以维护。
+* 中介者过多，导致系统复杂。
 
 .适用场景
+* 系统中对象之间存在复杂的引用关系，导致它们之间的依赖关系结构混乱且难以理解。
+* 交互的公共行为，如果需要改变行为则可以增加新的中介者类。
 
+中介者模式和观察者模式比较类似，都是通过一个对象来管理多个对象之间的交互。但是观察者模式是一对多的关系，而中介者模式是多对多的关系。观察者模式中，被观察者和观察者之间是松耦合的，而中介者模式中，同事类和中介者之间是紧耦合的。
 
 .jdk中的库，以及一些例子
+JDK中有使用中介者模式的例子，比如java.util.Timer类。Timer类充当了中介者的角色，它管理了多个TimerTask对象之间的调度和执行。TimerTask对象只需要注册到Timer类中，就可以按照指定的时间执行任务。
 
 
 .类图
 [source,text]
 ----
++-----------------------+        +-------------------------+
+|   Mediator            |<-------|   Colleague             |
++-----------------------+        +-------------------------+
+|                       |        | -mediator:Mediator      |
++-----------------------+        +-------------------------+
+| +register(c:Colleague)|        | +Colleague(m:Mediator)  |
+| +relay(c:Colleague)   |        | +setMediator(m:Mediator)|
++-----------------------+        | +receive()              |
+          / \                    | +send()                 |
+           |                     +-------------------------+
+           |                                  / \
+           |                                   |
+           |                                   |
+           |                                   |
+           |                                   |
+           |                                   |
++-----------------------------+       +-------------------+
+| ConcreteMediator            |       | ConcreteColleague |
++-----------------------------+       +-------------------+
+| -colleagues:List<Colleague> |       |                   |
++-----------------------------+       +-------------------+
+| #register(c:Colleague)      |       | #receive()        |
+| #relay(c:Colleague)         |       | #send()           |
++-----------------------------+       +-------------------+
+----
+其中，Mediator是抽象中介者类，定义了同事对象之间的通信接口；ConcreteMediator是具体中介者类，实现了抽象中介者的方法，并维护了一个同事对象的集合；Colleague是抽象同事类，定义了同事对象的公共方法，并持有一个中介者对象的引用；ConcreteColleague是具体同事类，实现了抽象同事类的方法，并通过中介者对象与其他同事对象进行交互。
+
+
+.类图
+[source,text]
+----
++-----------------+           +-----------------+
+|    ChatRoom     |<---uses---|   User          |
++-----------------+           +-----------------+
+| +register(user) |           | -name           |
+| +relay(user,msg)|           | -chatRoom       |
++-----------------+           | +send(msg)      |
+        ^                     | +receive(msg)   |
+        |                     +-----------------+
+        |                          ^
+        |                          |
+        |                          |
+        |                 +-----------------+
+        +---------------->|  ConcreteUser   |
+                          +-----------------+
+                          | +send(msg)      |
+                          | +receive(msg)   |
+                          +-----------------+
 
 ----
 
 .示例代码
 [source,java]
 ----
+// 假设有一个聊天室的应用，有多个用户可以向聊天室发送消息，聊天室向所有的用户显示消息。我们可以使用中介者模式来实现这个功能
+// 中介者接口，定义了注册同事和转发消息的方法
+public interface ChatRoom {
+    void register(User user);
+    void relay(User user, String message);
+}
 
+// 具体的中介者类，实现了中介者接口，维护了一个同事列表，负责转发消息给其他同事
+public class ConcreteChatRoom implements ChatRoom {
+    private List<User> users;
+
+    public ConcreteChatRoom() {
+        users = new ArrayList<>();
+    }
+
+    @Override
+    public void register(User user) {
+        if (!users.contains(user)) {
+            users.add(user);
+            user.setChatRoom(this);
+        }
+    }
+
+    @Override
+    public void relay(User user, String message) {
+        for (User u : users) {
+            if (!u.equals(user)) {
+                u.receive(message);
+            }
+        }
+    }
+}
+
+// 同事抽象类，定义了发送和接收消息的方法，持有一个中介者对象的引用
+public abstract class User {
+    protected String name;
+    protected ChatRoom chatRoom;
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    public void setChatRoom(ChatRoom chatRoom) {
+        this.chatRoom = chatRoom;
+    }
+
+    public abstract void send(String message);
+
+    public abstract void receive(String message);
+}
+
+// 具体的同事类，实现了同事抽象类，调用中介者对象的方法来发送和接收消息
+public class ConcreteUser extends User {
+
+    public ConcreteUser(String name) {
+        super(name);
+    }
+
+    @Override
+    public void send(String message) {
+        System.out.println(name + "发送消息：" + message);
+        chatRoom.relay(this, message);
+    }
+
+    @Override
+    public void receive(String message) {
+        System.out.println(name + "收到消息：" + message);
+    }
+}
+
+// 测试类，创建一个中介者对象和几个同事对象，并让他们互相发送消息
+public class Test {
+
+    public static void main(String[] args) {
+        ChatRoom chatRoom = new ConcreteChatRoom();
+        User alice = new ConcreteUser("Alice");
+        User bob = new ConcreteUser("Bob");
+        User cathy = new ConcreteUser("Cathy");
+        chatRoom.register(alice);
+        chatRoom.register(bob);
+        chatRoom.register(cathy);
+
+        alice.send("Hello everyone!");
+        bob.send("Hi Alice!");
+        cathy.send("Hi Bob!");
+    }
+}
 ----
+以上代码使用了中介者模式。它实现了一个聊天室应用程序，其中多个用户可以向聊天室发送消息，聊天室向所有的用户显示消息。其中，中介者接口 ChatRoom 定义了注册同事和转发消息的方法，具体的中介者类 ConcreteChatRoom 实现了中介者接口，并维护了一个同事列表，负责转发消息给其他同事。同事抽象类 User 定义了发送和接收消息的方法，持有一个中介者对象的引用 protected ChatRoom chatRoom，具体的同事类 ConcreteUser 实现了同事抽象类，调用中介者对象的方法 chatRoom.relay 来发送和接收消息。测试类创建了一个中介者对象和几个同事对象，并让他们互相发送消息，由中介者对象协调消息传递。这个设计满足了中介者模式的定义，`通过中介者对象来解耦了同事对象之间的交互，使得它们之间不再需要相互了解和直接交互`。
+
 === Interpreter 解释器模式
 [quote]
+解释器模式是一种行为型设计模式，它可以用来解释一种语言的语法或表达式。
+
+.解释器模式的主要角色有四个
+1. 抽象表达式（Abstract Expression）：定义解释器的接口，约定解释器的解释操作，主要包含解释方法 interpret()。
+2. 终结符表达式（Terminal Expression）：是抽象表达式的子类，用来实现文法中与终结符相关的操作，文法中的每一个终结符都有一个具体终结表达式与之相对应。
+3. 非终结符表达式（Nonterminal Expression）：也是抽象表达式的子类，用来实现文法中与非终结符相关的操作，文法中的每条规则都对应于一个非终结符表达式。
+4. 上下文（Context）：通常包含各个解释器需要的数据或是公共的功能，一般用来传递被所有解释器共享的数据，后面的解释器可以从这里获取这些值。
 
 .优点
+扩展性好，可以通过继承机制增加新的解释表达式。
 
 .缺点
+效率低，调用麻烦，容易引起类膨胀，而且对于复杂的文法难以维护。
 
 .适用场景
+* 可以将一个需要解释执行的语言中的句子表示为一个抽象语法树。
+* 一些重复出现的问题可以用一种简单的语言来进行表达。
+* 一个简单语法需要解释的场景。
 
+解释器模式和其他设计模式比较类似的有：
+
+* 命令模式（Command Pattern）：也是将一个问题分解为多个对象来表示和处理，但命令模式更侧重于封装请求和执行操作，而不是解析语言。
+* 组合模式（Composite Pattern）：也是使用树形结构来表示复杂对象，但组合模式更侧重于描述对象之间的组合关系，而不是定义文法规则。
+* 访问者模式（Visitor Pattern）：也是使用抽象表达式和具体表达式来表示不同类型的元素，但访问者模式更侧重于对元素进行不同类型的操作，而不是对元素进行统一的解释。
 
 .jdk中的库，以及一些例子
-
+JDK中有使用解释器模式的例子，例如java.util.Pattern类和java.text.Format类。它们都提供了一种将字符串转换为特定格式或对象的方法。
 
 .类图
 [source,text]
 ----
-
++----------------+           +---------------------+
+|    Context     |           |  AbstractExpression |
++----------------+           +---------------------+
+|                |<>-------->| +Interpret()        |
++----------------+           +-------^-------------+
+                                      |
+                                      |
+                                      |
+                             +--------+--------+
+                             |                 |
+                  +--------------------+  +-----------------------+
+                  | TerminalExpression |  | NonterminalExpression |
+                  +--------------------+  +-----------------------+
+                  | +Interpret()       |  | +Interpret()          |
+                  +--------------------+  +-----------------------+
 ----
 
-.示例代码
+.示例代码——如何实现一个解释器模式
 [source,java]
 ----
+public abstract class Expression {
+    public abstract int interpret(Context context);
+}
 
+public class TerminalExpression extends Expression {
+    private int number;
+
+    public TerminalExpression(int number) {
+        this.number = number;
+    }
+
+    @Override
+    public int interpret(Context context) {
+        return number;
+    }
+}
+
+public class AddExpression extends Expression {
+    private Expression left;
+    private Expression right;
+
+    public AddExpression(Expression left, Expression right) {
+        this.left = left;
+        this.right = right;
+    }
+
+    @Override
+    public int interpret(Context context) {
+        return left.interpret(context) + right.interpret(context);
+    }
+}
+
+public class SubtractExpression extends Expression {
+    private Expression left;
+    private Expression right;
+
+    public SubtractExpression(Expression left, Expression right) {
+        this.left = left;
+        this.right = right;
+    }
+
+    @Override
+    public int interpret(Context context) {
+        return left.interpret(context) - right.interpret(context);
+    }
+}
+
+public class Context {
+}
+
+public class InterpreterClient {
+    public static void main(String[] args) {
+        Context context = new Context();
+        int result = new AddExpression(
+                new TerminalExpression(1),
+                new SubtractExpression(
+                        new TerminalExpression(2),
+                        new TerminalExpression(3)
+                )
+        ).interpret(context);
+        System.out.println(result);
+    }
+}
 ----
+太长的示例Bing无法发送，后面会专门有一篇文章详解解释器模式和ANTLR。
+
 === Visitor 访问者模式
 [quote]
+访问者模式是一种行为型设计模式，它包含访问者和被访问元素两个主要组成部分。这些被访问的元素通常具有不同的类型，且不同的访问者可以对它们进行不同的访问操作。
 
 .优点
+* 符合单一职责原则。
+* 优秀的扩展性。
+* 灵活性。
 
 .缺点
+* 具体元素对访问者公布细节，违反了迪米特原则
+* 具体元素变更比较困难
+* 违反了依赖倒置原则，依赖了具体类，没有依赖抽象
 
 .适用场景
+* 对象结构中对象对应的类很少改变，但经常需要在此对象结构上定义新的操作。
+* 需要对一个对象结构中的对象进行很多不同的并且不相关的操作，而需要避免让这些操作"污染"这些对象的类，也不希望在增加新操作时修改这些类。
 
-
-.jdk中的库，以及一些例子
-
-
-.类图
-[source,text]
-----
-
-----
 
 .示例代码
 [source,java]
 ----
+interface Shape {
+    void move(int x, int y);
+    void draw();
+    String accept(Visitor visitor);
+}
 
+class Circle implements Shape {
+    private int id;
+    private int x;
+    private int y;
+    private int radius;
+
+    public Circle(int id, int x, int y, int radius) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+    }
+    @Override
+    public void move(int x, int y) {
+        // move shape
+    }
+
+    @Override
+    public void draw() {
+        // draw shape
+    }
+
+
+    @Override
+    public String accept(Visitor visitor) {
+        return visitor.visitCircle(this);
+    }
+
+    public int getRadius() {
+        return radius;
+    }
+}
+
+
+class CompoundShape implements Shape {
+   public int id;
+   public List<Shape> children = new ArrayList<>();
+
+   public CompoundShape(int id) {
+       this.id = id;
+   }
+
+   @Override
+   public void move(int x, int y) {
+       // move shape
+   }
+
+   @Override
+   public void draw() {
+       // draw shape
+   }
+
+   public int getId() {
+       return id;
+   }
+
+   @Override
+   public String accept(Visitor visitor) {
+       return visitor.visitCompoundGraphic(this);
+   }
+
+   public void add(Shape shape) {
+       children.add(shape);
+   }
+}
+
+public interface Visitor {
+    String visitCircle(Circle circle);
+    String visitCompoundGraphic(CompoundShape cg);
+}
+
+public class XMLExportVisitor implements Visitor {
+    @Override
+    public String visitCircle(Circle circle) {
+        return "exporting circle to xml";
+    }
+    @Override
+    public String visitCompoundGraphic(CompoundShape cg) {
+        return "exporting compound graphic to xml";
+    }}
+}
+
+public class Demo {
+    public static void main(String[] args) {
+        Circle circle = new Circle(2, 23, 15, 10);
+        CompoundShape compoundShape = new CompoundShape(4);
+        compoundShape.add(circle);
+        compoundShape.add(rectangle);
+        export(circle, compoundShape);
+    }
+
+    private static void export(Shape... shapes) {
+        XMLExportVisitor exportVisitor = new XMLExportVisitor();
+        System.out.println(exportVisitor.export(shapes));
+    }
+}
 ----
+
+=== Memento 备忘录模式
+[quote]
+备忘录模式是一种设计模式，它保存一个对象的某个状态，以便在适当的时候恢复对象。它属于行为型模式。
+
+备忘录模式适用于撤销操作：保存/恢复数据的相关业务场景；如：在Word中编写文档，如果想要撤销之前的输入/删除操作，使用Ctrl + Z执行“撤销”操作；状态恢复：在“后悔”的时候，将对象恢复到之前的状态；如：游戏中的存档使用。
+
+备忘录模式优点是封装存档信息，为用户提供一种可恢复机制。缺点是资源占用，会额外占用磁盘/内存等资源。
+
+与备忘录模式类似的设计模式有状态模式。不过，在备忘录模式中，使用对象实例表示状态，当前对象的存档是该对象的实例；而在状态模式中，使用类表示状态。
+
+.类图
+[source,text]
+----
++------------------------+       +-----------------+
+|   Originator           |------>|   Memento       |
++------------------------+       +-----------------+
+| -state: String         |       | -state: String  |
+| +setState()            |       | +getState()     |
+| +saveStateToMemento()  |       |                 |
+| +getStateFromMemento() |       |                 |
++------------------------+       +------+----------+
+                                        |
+                                        |
+                                        |
+                               +--------v--------+
+                               |    CareTaker    |
+                               +-----------------+
+                               | -mementos: List |
+                               | +add()          |
+                               | +get()          |
+                               +-----------------+
+----
+在这个类图中，Originator类有一个状态state，它可以通过saveStateToMemento()方法将状态保存到一个Memento对象中，并通过getStateFromMemento()方法从一个Memento对象中恢复状态。CareTaker类负责保存多个备忘录对象。
+
+.示例代码
+[source,java]
+----
+public class Originator {
+    private String state;
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public Memento saveStateToMemento() {
+        return new Memento(state);
+    }
+
+    public void getStateFromMemento(Memento memento) {
+        state = memento.getState();
+    }
+}
+
+public class Memento {
+    private String state;
+
+    public Memento(String state) {
+        this.state = state;
+    }
+
+    public String getState() {
+        return state;
+    }
+}
+
+public class CareTaker {
+    private List<Memento> mementos = new ArrayList<>();
+
+    public void add(Memento memento) {
+        mementos.add(memento);
+    }
+
+    public Memento get(int index) {
+        return mementos.get(index);
+    }
+}
+
+public static void main(String[] args) {
+    // 在这个例子中，我们创建了一个Originator对象和一个CareTaker对象。我们改变了Originator对象的状态，并将其保存到CareTaker对象中。然后，我们从CareTaker对象中获取保存的状态，并将其恢复到Originator对象中。
+    Originator originator = new Originator();
+    CareTaker careTaker = new CareTaker();
+
+    originator.setState("State #1");
+    originator.setState("State #2");
+    careTaker.add(originator.saveStateToMemento());
+
+    originator.setState("State #3");
+    careTaker.add(originator.saveStateToMemento());
+
+    originator.setState("State #4");
+    System.out.println("Current State: " + originator.getState());
+
+    originator.getStateFromMemento(careTaker.get(0));
+    System.out.println("First saved State: " + originator.getState());
+    originator.getStateFromMemento(careTaker.get(1));
+    System.out.println("Second saved State: " + originator.getState());
+}
+----
+在这个例子中，Originator类有一个状态state，它可以通过saveStateToMemento()方法将状态保存到一个Memento对象中，并通过getStateFromMemento()方法从一个Memento对象中恢复状态。CareTaker类负责保存多个备忘录对象。
