@@ -409,7 +409,7 @@ class WindowsFactory implements GUIFactory {
 🧐ME: 你能用字符拼接出一个图片，用于展示抽象工厂的类图吗？
 
 🙂BING:
-[source,txt]
+[source,text]
 ----
 +------------------+                  +-----------------+
 |  AbstractFactory |<-----------------|    Client       |
@@ -422,10 +422,11 @@ class WindowsFactory implements GUIFactory {
          |    +---------------+                      +--------------+   +--------------+
          |                    |                      |  ProductA    |   |  ProductB    |
 +-----------------+  +-----------------+             +--------------+   +--------------+
-|ConcreteFactory1 |  |ConcreteFactory2 |             |-name             |-name
-+-----------------+  +-----------------+             |-price            |-price
-|+createProductA()|  |+createProductA()|
+|ConcreteFactory1 |  |ConcreteFactory2 |             |-name         |   |-name         |
++-----------------+  +-----------------+             |-price        |   |-price        |
+|+createProductA()|  |+createProductA()|             +--------------+   +--------------+
 |+createProductB()|  |+createProductB()|
++-----------------+  +-----------------+
 ----
 
 ===	Builder 建造者模式
